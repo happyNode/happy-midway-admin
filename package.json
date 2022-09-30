@@ -1,0 +1,99 @@
+{
+  "name": "midway-practice",
+  "version": "1.0.0",
+  "description": "使用 midway + egg + ORM 完成 数据库 CRUD，Restful 接口基础功能，应用服务基础功能",
+  "private": true,
+  "dependencies": {
+    "@midwayjs/bootstrap": "^3.4.12",
+    "@midwayjs/cache": "^3.5.3",
+    "@midwayjs/core": "^3.4.12",
+    "@midwayjs/cross-domain": "^3.4.12",
+    "@midwayjs/jwt": "^3.4.12",
+    "@midwayjs/koa": "^3.4.12",
+    "@midwayjs/logger": "^2.17.0",
+    "@midwayjs/redis": "^3.4.12",
+    "@midwayjs/sequelize": "^3.4.12",
+    "@midwayjs/swagger": "^3.4.12",
+    "@midwayjs/task": "^3.4.12",
+    "@midwayjs/validate": "^3.4.12",
+    "@mw-components/jaeger": "^13.1.4",
+    "@mw-components/koid": "^9.1.1",
+    "@waiting/shared-core": "^20.5.0",
+    "@waiting/shared-types": "^20.5.0",
+    "bcryptjs": "^2.4.3",
+    "bignumber.js": "^9.1.0",
+    "cache-manager": "^5.0.0",
+    "cache-manager-ioredis": "^2.1.0",
+    "chalk": "^5.0.1",
+    "dayjs": "^1.11.5",
+    "dotenv": "^16.0.1",
+    "ipip-ipdb": "^0.6.0",
+    "joi": "^17.6.0",
+    "lodash": "^4.17.21",
+    "mysql2": "^2.3.3",
+    "path-to-regexp": "^6.2.1",
+    "randomstring": "^1.2.2",
+    "sequelize": "^6.21.4",
+    "tsconfig-paths": "^4.1.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@midwayjs/cli": "^1.3.11",
+    "@midwayjs/luckyeye": "^1.1.0",
+    "@midwayjs/mock": "^3.4.12",
+    "@types/cache-manager": "^4.0.2",
+    "@types/chai": "^4.3.3",
+    "@types/ioredis": "^4.28.10",
+    "@types/jest": "^28.1.7",
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/koa": "^2.13.5",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.7.9",
+    "@types/sinon": "^10.0.13",
+    "cross-env": "^7.0.3",
+    "egg-mock": "^4.2.1",
+    "eslint": "^8.22.0",
+    "husky": "^8.0.1",
+    "intelli-espower-loader": "^1.1.0",
+    "jest": "^28.1.3",
+    "mocha": "^10.0.0",
+    "mwts": "^1.3.0",
+    "swagger-ui-dist": "^4.14.0",
+    "ts-jest": "^28.0.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "online": "NODE_ENV=production pm2-runtime start ./bootstrap.js --name midway-practice -i 1",
+    "start": "NODE_ENV=production node ./bootstrap.js",
+    "start_build": "npm run build && cross-env NODE_ENV=development midway-bin dev",
+    "dev": "cross-env NODE_ENV=local midway-bin dev --ts",
+    "test": "midway-bin test --ts --mocha",
+    "cov": "midway-bin cov --ts",
+    "lint": "mwts check",
+    "lint:fix": "mwts fix",
+    "ci": "npm run cov",
+    "build": "tsc",
+    "check": "luckyeye",
+    "clear": "rm -rf ./logs ./run ./dist"
+  },
+  "midway-bin-clean": [
+    ".vscode/.tsbuildinfo",
+    "dist"
+  ],
+  "midway-luckyeye": {
+    "packages": [
+      "midway_v2"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ddzyan/midway-practice.git"
+  },
+  "author": "dingdongzhao",
+  "license": "MIT"
+}
