@@ -1,5 +1,5 @@
 {
-  "name": "midway-practice",
+  "name": "happy-midway-admin",
   "version": "1.0.0",
   "description": "使用 midway + egg + ORM 完成 数据库 CRUD，Restful 接口基础功能，应用服务基础功能",
   "private": true,
