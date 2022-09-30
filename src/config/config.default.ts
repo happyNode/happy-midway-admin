@@ -82,10 +82,6 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
   config.cache = {
     store: redisStore,
     options: {
-      host: 'localhost', // default value
-      port: 6379, // default value
-      password: '',
-      db: 0,
       keyPrefix: 'cache:',
       ttl: 100,
     },
