@@ -18,3 +18,9 @@ export interface IGetUserResponse {
 export interface IAccessLogConfig {
   ignore: RegExp[];
 }
+
+export interface ExecuteData {
+  id: number;
+  args: string;
+  runMode?: number;
+}
