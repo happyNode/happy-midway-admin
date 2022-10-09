@@ -2,13 +2,9 @@ import { Validate } from '@midwayjs/validate';
 import {
   Inject,
   Controller,
-  Query,
   Get,
   Post,
-  Body,
 } from '@midwayjs/decorator';
-import { CreateUserInput } from '../model/dto/user';
-import { QueryParamDTO } from '../model/dto/base';
 import { UserService } from '../service/user';
 import { BaseController } from '../../core/baseController';
 
@@ -16,37 +12,32 @@ import { BaseController } from '../../core/baseController';
 export class UserController extends BaseController {
   @Inject()
   protected service: UserService;
+  @Get('/:uid', { summary: '用户详情' })
+  @Validate()
+  async index() {}
 
   @Get('/', { summary: '分页获取用户列表' })
   @Validate()
-  async index(
-    @Query()
-    queryParam: QueryParamDTO
-  ) {
-    const { page, limit } = queryParam;
-    const res = await this.service.findAndCountAll(page, limit);
-    return this.success(res);
-  }
+  async userList() {}
 
   @Post('/', {
     summary: '创建用户',
-    description: '根据传入的用户名和邮箱地址创建用户，邮箱地址不允许重复',
+    description: '',
   })
   @Validate()
-  async create(
-    @Body()
-    createParams: CreateUserInput
-  ) {
-    const res = await this.service.create(createParams);
-    return this.success(res);
-  }
+  async create() {}
 
-  @Get('/number', {
-    summary: '获取用户数量',
+  @Post('/modify', {
+    summary: '更新用户',
+    description: '',
   })
   @Validate()
-  async getNumberUser() {
-    const res = await this.service.getNumberUser();
-    return this.success(res);
-  }
+  async modify() {}
+
+  @Post('/ban', {
+    summary: '封禁用户',
+    description: '',
+  })
+  @Validate()
+  async ban() {}
 }

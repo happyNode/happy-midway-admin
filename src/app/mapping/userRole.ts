@@ -2,10 +2,10 @@ import { Provide } from '@midwayjs/decorator';
 import { InjectRepository } from '@midwayjs/sequelize';
 import { Repository } from 'sequelize-typescript';
 import { BaseMapping } from '../../core/baseMapping';
-import { UserEntity } from "../entity/user";
+import { UserRoleEntity } from "../entity/userRole";
 
 @Provide()
-export class UserMapping extends BaseMapping<UserEntity> {
-  @InjectRepository(UserEntity)
-  repository: Repository<UserEntity>;
+export class RoleMenuMapping extends BaseMapping<UserRoleEntity> {
+  @InjectRepository(UserRoleEntity)
+  repository: Repository<UserRoleEntity>;
 }

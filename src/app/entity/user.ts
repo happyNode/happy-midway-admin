@@ -1,64 +1,90 @@
-import {
-  Column,
-  DataType,
-  HasOne,
-  HasMany,
-  ForeignKey,
-  Table,
-  Model,
-} from 'sequelize-typescript';
-
-import { ClassroomEntity } from './classroom';
-import { ParentInfoEntity } from './parentInfo';
+import { Column, DataType, Table, Model } from 'sequelize-typescript';
 
 @Table({
-  modelName: 'user',
+  modelName: 'sys_user',
   timestamps: true,
 })
 export class UserEntity extends Model {
   @Column({
-    type: DataType.BIGINT({
-      length: 10,
+    type: DataType.INTEGER({
+      length: 11,
       unsigned: true,
     }),
+    allowNull: false,
     autoIncrement: true,
     primaryKey: true,
-    comment: 'id',
+    field: 'user_id',
+    comment: '用户id',
   })
-  id: number;
+  userId: number;
 
   @Column({
-    type: DataType.STRING({
-      length: 20,
-    }),
-    field: 'first_name',
-    comment: '姓',
+    type: DataType.STRING(64),
+    allowNull: false,
+    defaultValue: '',
+    comment: '登录账号',
   })
-  firstName: string;
+  username: string;
 
   @Column({
-    type: DataType.STRING({
-      length: 20,
-    }),
-    field: 'last_name',
-    comment: '名',
+    type: DataType.STRING(255),
+    allowNull: false,
+    defaultValue: '',
+    comment: '登录账号',
   })
-  lastName: string;
+  password: string;
 
-  @ForeignKey(() => ClassroomEntity)
   @Column({
-    type: DataType.BIGINT({
-      length: 10,
+    type: DataType.STRING(64),
+    field: 'name',
+    allowNull: false,
+    defaultValue: '',
+    comment: '用户名称',
+  })
+  name: string;
+
+
+  @Column({
+    type: DataType.TINYINT({
+      length: 4,
       unsigned: true,
     }),
-    field: 'classroom_id',
-    comment: '班级id',
+    allowNull: false,
+    defaultValue: 1,
+    comment: '状态: 0: 禁用 1: 启用',
   })
-  classroomId: number;
+  status: number;
 
-  @HasOne(() => ClassroomEntity, { sourceKey: 'classroomId', foreignKey: 'id' })
-  classroom: ClassroomEntity;
+  @Column({
+    type: DataType.STRING(255),
+    field: 'head_img',
+    allowNull: false,
+    defaultValue: '',
+    comment: '头像',
+  })
+  headImg: string;
 
-  @HasMany(() => ParentInfoEntity)
-  parentInfos: ParentInfoEntity[];
+  @Column({
+    type: DataType.STRING(64),
+    allowNull: false,
+    defaultValue: '',
+    comment: '邮件',
+  })
+  email: string;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+    defaultValue: '',
+    comment: '手机号',
+  })
+  phone: string;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+    defaultValue: '',
+    comment: '备注',
+  })
+  remark: string;
 }
