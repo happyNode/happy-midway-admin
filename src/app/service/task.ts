@@ -4,8 +4,15 @@ import { Provide, Inject } from '@midwayjs/decorator';
 import { TaskExecuter } from './../../schedule/task';
 import { BaseService } from '../../core/baseService';
 import { TaskMapping } from './../mapping/task';
+import { TaskLogMapping } from './../mapping/taskLog';
 import { TaskEntity } from './../entity/task';
-import { CreateTaskDTO, UpdateTaskDTO, GetListDTO } from './../model/dto/task';
+import { TaskLogEntity } from './../entity/taskLog';
+import {
+  CreateTaskDTO,
+  UpdateTaskDTO,
+  GetListDTO,
+  GetLogsDTO,
+} from './../model/dto/task';
 import { TaskLogService } from './taskLog';
 import { STATUS, TYPE } from './../constant/task';
 
@@ -13,6 +20,9 @@ import { STATUS, TYPE } from './../constant/task';
 export class TaskService extends BaseService {
   @Inject()
   protected mapping: TaskMapping;
+
+  @Inject()
+  protected taskLogMapping: TaskLogMapping;
 
   @Inject()
   queueService: QueueService;
@@ -37,8 +47,9 @@ export class TaskService extends BaseService {
           .removeRepeatableByKey(job.key)
       )
     );
+    console.log('已移除目前存在的定时任务 ✅');
     // 查找所有需要运行的任务
-    const tasks = await this.mapping.findAll({ status: 1 });
+    const tasks = await this.mapping.findAll({ status: STATUS.START });
     await Promise.all(tasks.map(task => this._start(task)));
     console.log('定时任务加载完成 ✅');
   }
@@ -137,6 +148,45 @@ export class TaskService extends BaseService {
   }
 
   /**
+   * remove task
+   */
+  async remove(taskId: number): Promise<void> {
+    const task = await this.mapping.findByPk(taskId);
+    if (!task) {
+      throw new Error('无效的定时任务，请重新刷新页面');
+    }
+    await this._stop(task);
+    await this.mapping.destroy({ taskId: task.taskId });
+  }
+
+  /**
+   * 获取任务下拉框
+   */
+  async select(): Promise<TaskEntity[]> {
+    const task = await this.mapping.findAll(
+      {},
+      { attributes: ['taskId', 'taskName'] }
+    );
+    return task;
+  }
+
+  /**
+   * 查询任务日志列表(分页)
+   */
+  async logs(params: GetLogsDTO): Promise<{
+    rows: TaskLogEntity[];
+    count: number;
+  }> {
+    const { page, limit, taskId } = params;
+    const where = {};
+    if (typeof taskId === 'number') {
+      where['taskId'] = taskId;
+    }
+    const logs = await this.taskLogMapping.findAndCountAll(page, limit, where);
+    return logs;
+  }
+
+  /**
    * 开始任务
    */
   private async _start(task: TaskEntity): Promise<void> {
@@ -192,7 +242,7 @@ export class TaskService extends BaseService {
     if (!task) {
       throw new Error('Task is Empty');
     }
-    const exist = await this.existJob(task.taskId.toString());
+    const exist = await this._existJob(task.taskId.toString());
     if (!exist) {
       await this.mapping.modify(
         { status: STATUS.STOP },
@@ -221,7 +271,7 @@ export class TaskService extends BaseService {
   /**
    * 查看队列中任务是否存在
    */
-  async existJob(jobId: string): Promise<boolean> {
+  private async _existJob(jobId: string): Promise<boolean> {
     const jobs = await this.queueService
       .getClassQueue(TaskExecuter)
       .getRepeatableJobs();
@@ -254,7 +304,7 @@ export class TaskService extends BaseService {
   async checkTaskAfterExecute(task: TaskEntity) {}
 
   // TODO 待删除
-  async execute() {
+  async test() {
     // 3秒后触发分布式任务调度。
     await this.queueService.execute(
       TaskExecuter,

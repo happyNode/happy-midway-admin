@@ -75,3 +75,8 @@ export class UpdateTaskDTO extends CreateTaskDTO {
 }
 
 export class GetListDTO extends QueryParamDTO {}
+
+export class GetLogsDTO extends QueryParamDTO {
+  @Rule(RuleType.number().integer().greater(0).optional())
+  taskId?: number;
+}

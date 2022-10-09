@@ -1,7 +1,7 @@
 import { Column, DataType, Table, Model } from 'sequelize-typescript';
 
 @Table({
-  modelName: 'sys_task_log',
+  modelName: 'task_log',
   timestamps: true,
 })
 export class TaskLogEntity extends Model {

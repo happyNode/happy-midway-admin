@@ -1,7 +1,7 @@
 import { Column, DataType, Table, Model } from 'sequelize-typescript';
 
 @Table({
-  modelName: 'sys_task',
+  modelName: 'task',
   timestamps: true,
 })
 export class TaskEntity extends Model {
