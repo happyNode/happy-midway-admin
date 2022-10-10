@@ -1,4 +1,6 @@
-import { Column, DataType, Table, Model } from 'sequelize-typescript';
+import { Column, DataType, Table, Model, HasMany } from 'sequelize-typescript';
+import * as bcrypt from 'bcryptjs';
+import {UserRoleEntity} from "./userRole";
 
 @Table({
   modelName: 'sys_user',
@@ -31,6 +33,11 @@ export class UserEntity extends Model {
     allowNull: false,
     defaultValue: '',
     comment: '登录账号',
+    set(val) {
+      const salt = bcrypt.genSaltSync(10);
+      const pwd = bcrypt.hashSync(val, salt);
+      this.setDataValue('loginPwd', pwd);
+    },
   })
   password: string;
 
@@ -87,4 +94,10 @@ export class UserEntity extends Model {
     comment: '备注',
   })
   remark: string;
+
+  @HasMany(() => UserRoleEntity, {
+    sourceKey: 'userId',
+    foreignKey: 'userId',
+  })
+  userRoles: UserRoleEntity;
 }

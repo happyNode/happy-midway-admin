@@ -1,4 +1,5 @@
-import { Column, DataType, Table, Model } from 'sequelize-typescript';
+import { Column, DataType, Table, Model, HasOne } from 'sequelize-typescript';
+import { RoleEntity } from "./role";
 
 @Table({
   modelName: 'user_role',
@@ -39,4 +40,10 @@ export class UserRoleEntity extends Model {
     comment: '角色id',
   })
   roleId: number;
+
+  @HasOne(() => RoleEntity, {
+    sourceKey: 'roleId',
+    foreignKey: 'roleId',
+  })
+  role: RoleEntity;
 }

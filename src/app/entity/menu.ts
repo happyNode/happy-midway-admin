@@ -1,4 +1,5 @@
-import { Column, DataType, Table, Model } from 'sequelize-typescript';
+import {Column, DataType, Table, Model, BelongsTo} from 'sequelize-typescript';
+import { RoleMenuEntity } from "./roleMenu";
 
 @Table({
   modelName: 'menu',
@@ -115,4 +116,7 @@ export class MenuEntity extends Model {
     comment: '是否在菜单栏 0: 不显示 1：显示',
   })
   isShow: number;
+
+  @BelongsTo(() => RoleMenuEntity, 'menuId')
+  roleMenus: RoleMenuEntity;
 }

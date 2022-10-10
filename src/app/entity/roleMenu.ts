@@ -1,4 +1,5 @@
-import { Column, DataType, Table, Model } from 'sequelize-typescript';
+import { Column, DataType, Table, Model, HasOne } from 'sequelize-typescript';
+import { MenuEntity } from "./menu";
 
 @Table({
   modelName: 'role_menu',
@@ -39,4 +40,10 @@ export class RoleMenuEntity extends Model {
     comment: '菜单id',
   })
   menuId: number;
+
+  @HasOne(() => MenuEntity, {
+    sourceKey: 'menuId',
+    foreignKey: 'menuId',
+  })
+  menu: MenuEntity;
 }

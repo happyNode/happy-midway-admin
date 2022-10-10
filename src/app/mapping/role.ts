@@ -5,7 +5,7 @@ import { BaseMapping } from '../../core/baseMapping';
 import { RoleEntity } from "../entity/role";
 
 @Provide()
-export class MenuMapping extends BaseMapping<RoleEntity> {
+export class RoleMapping extends BaseMapping<RoleEntity> {
   @InjectRepository(RoleEntity)
   repository: Repository<RoleEntity>;
 }

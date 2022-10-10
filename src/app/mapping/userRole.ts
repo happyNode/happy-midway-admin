@@ -5,7 +5,14 @@ import { BaseMapping } from '../../core/baseMapping';
 import { UserRoleEntity } from "../entity/userRole";
 
 @Provide()
-export class RoleMenuMapping extends BaseMapping<UserRoleEntity> {
+export class UserRoleMapping extends BaseMapping<UserRoleEntity> {
   @InjectRepository(UserRoleEntity)
   repository: Repository<UserRoleEntity>;
+
+  async creatMany(params: {
+    userId: number;
+    roleId: number;
+  }[], options = {}) {
+    await this.repository.bulkBuild(params, options);
+  }
 }
