@@ -1,6 +1,8 @@
 import { QueueService } from '@midwayjs/task';
 import { Provide, Inject } from '@midwayjs/decorator';
+import { CronRepeatOptions, EveryRepeatOptions } from 'bull';
 
+import MyError from './../comm/myError';
 import { TaskExecuter } from './../../schedule/task';
 import { BaseService } from '../../core/baseService';
 import { TaskMapping } from './../mapping/task';
@@ -14,7 +16,8 @@ import {
   GetLogsDTO,
 } from './../model/dto/task';
 import { TaskLogService } from './taskLog';
-import { STATUS, TYPE } from './../constant/task';
+import { STATUS, TYPE, RUN_MODE, RESULT } from './../constant/task';
+import { IExecuteData } from './../../interface';
 
 @Provide()
 export class TaskService extends BaseService {
@@ -77,13 +80,13 @@ export class TaskService extends BaseService {
   /**
    * 添加任务
    */
-  async addTask(params: CreateTaskDTO): Promise<void> {
+  async addTask(userId: number, params: CreateTaskDTO): Promise<void> {
     // 判断定时器任务名称唯一
     let task = await this.mapping.findOne({ taskName: params.taskName });
     if (task) {
-      throw new Error('已有相同名称的定时任务');
+      throw new MyError('已有相同名称的定时任务');
     }
-    task = await this.mapping.saveNew(params);
+    task = await this.mapping.saveNew({ userId, ...params });
     await this._startOrStopTask(task);
   }
 
@@ -93,7 +96,7 @@ export class TaskService extends BaseService {
   async updateTask(params: UpdateTaskDTO): Promise<void> {
     let task = await this.mapping.findByPk(params.taskId);
     if (!task) {
-      throw new Error('无效的定时任务，请重新刷新页面');
+      throw new MyError('无效的定时任务，请重新刷新页面');
     }
     task = await task.update(params);
     await this._startOrStopTask(task);
@@ -116,7 +119,7 @@ export class TaskService extends BaseService {
   async startTask(taskId: number): Promise<void> {
     const task = await this.mapping.findByPk(taskId);
     if (!task) {
-      throw new Error('无效的定时任务，请重新刷新页面');
+      throw new MyError('无效的定时任务，请重新刷新页面');
     }
     await this._start(task);
   }
@@ -127,7 +130,7 @@ export class TaskService extends BaseService {
   async stopTask(taskId: number): Promise<void> {
     const task = await this.mapping.findByPk(taskId);
     if (!task) {
-      throw new Error('无效的定时任务，请重新刷新页面');
+      throw new MyError('无效的定时任务，请重新刷新页面');
     }
     await this._stop(task);
   }
@@ -138,11 +141,11 @@ export class TaskService extends BaseService {
   async once(taskId: number): Promise<void> {
     const task = await this.mapping.findByPk(taskId);
     if (!task) {
-      throw new Error('无效的定时任务，请重新刷新页面');
+      throw new MyError('无效的定时任务，请重新刷新页面');
     }
     await this.queueService.execute(
       TaskExecuter,
-      { id: task.taskId, args: task.args },
+      { taskId: task.taskId, args: task.args, runMode: RUN_MODE.MANUAL },
       { jobId: task.taskId, removeOnComplete: true, removeOnFail: true }
     );
   }
@@ -153,7 +156,7 @@ export class TaskService extends BaseService {
   async remove(taskId: number): Promise<void> {
     const task = await this.mapping.findByPk(taskId);
     if (!task) {
-      throw new Error('无效的定时任务，请重新刷新页面');
+      throw new MyError('无效的定时任务，请重新刷新页面');
     }
     await this._stop(task);
     await this.mapping.destroy({ taskId: task.taskId });
@@ -186,20 +189,22 @@ export class TaskService extends BaseService {
     return logs;
   }
 
-  /**
-   * 开始任务
-   */
-  private async _start(task: TaskEntity): Promise<void> {
-    // 先停掉之前存在的任务
-    await this._stop(task);
-    let repeat: any;
+  private _getRepeatOptions(
+    task: TaskEntity
+  ): CronRepeatOptions | EveryRepeatOptions {
+    let repeat: CronRepeatOptions | EveryRepeatOptions;
+    if (task.endTime) {
+      repeat.endDate = task.endTime;
+    }
+    if (task.limit > 0) {
+      repeat.limit = task.limit;
+    }
     if (task.type === TYPE.INTERVAL) {
       // 间隔 Repeat every millis (cron setting cannot be used together with this setting.)
       repeat = {
         every: task.every,
       };
-    } else {
-      // cron
+    } else if (task.type === TYPE.CRON) {
       repeat = {
         cron: task.cron,
       };
@@ -207,17 +212,29 @@ export class TaskService extends BaseService {
       if (task.startTime) {
         repeat.startDate = task.startTime;
       }
-      if (task.endTime) {
-        repeat.endDate = task.endTime;
-      }
+    } else {
+      throw new MyError('非法的定时类型');
     }
-    if (task.limit > 0) {
-      repeat.limit = task.limit;
-    }
+
+    return repeat;
+  }
+
+  /**
+   * 开始任务
+   */
+  private async _start(task: TaskEntity): Promise<void> {
+    // 先停掉之前存在的任务
+    await this._stop(task);
+
     const job = await this.queueService.execute(
       TaskExecuter,
-      { id: task.taskId, args: task.args },
-      { jobId: task.taskId, removeOnComplete: true, removeOnFail: true, repeat }
+      { taskId: task.taskId, args: task.args, runMode: RUN_MODE.AUTO },
+      {
+        jobId: task.taskId,
+        removeOnComplete: true,
+        removeOnFail: true,
+        repeat: this._getRepeatOptions(task),
+      }
     );
 
     if (job && job.opts) {
@@ -230,8 +247,11 @@ export class TaskService extends BaseService {
     } else {
       // update status to 0，标识暂停任务，因为启动失败
       job && (await job.remove());
-      await this.mapping.modify({ status: STATUS.STOP }, task.taskId);
-      throw new Error('Task Start failed');
+      await this.mapping.modify(
+        { status: STATUS.STOP },
+        { taskId: task.taskId }
+      );
+      throw new MyError('Task Start failed');
     }
   }
 
@@ -240,7 +260,7 @@ export class TaskService extends BaseService {
    */
   private async _stop(task: TaskEntity): Promise<void> {
     if (!task) {
-      throw new Error('Task is Empty');
+      throw new MyError('Task is Empty');
     }
     const exist = await this._existJob(task.taskId.toString());
     if (!exist) {
@@ -292,18 +312,104 @@ export class TaskService extends BaseService {
      * 是否有startTime配置并且当前时间大于startTime
      * 是否有endTime配置并且当前时间小于endTime
      */
-    if (!task || task.status === STATUS.STOP) {
+    if (!task) {
+      throw new MyError('Task is Empty');
+    }
+    if (task.status === STATUS.STOP) {
+      throw new MyError('Task is Stopping');
     }
     // 是否有limit限制并且limit不为0
+    if (task.limit === 0) {
+      throw new MyError('Task limit is 0');
+    }
+
     return task;
+  }
+
+  // 任务执行成功
+  async taskSuccess({
+    task,
+    timing,
+    result,
+    data,
+  }: {
+    task: TaskEntity;
+    timing: number;
+    result: any;
+    data: IExecuteData;
+  }): Promise<void> {
+    const { taskId } = task;
+    const { runMode } = data;
+    // 记录日志
+    await this.taskLogMapping.saveNew({
+      taskId,
+      result: RESULT.SUCCESS,
+      consumeTime: timing,
+      detail: result,
+      runMode,
+    });
+  }
+
+  // 任务执行失败
+  async taskFail({
+    task,
+    timing,
+    error,
+    data,
+  }: {
+    task: TaskEntity;
+    timing: number;
+    error: any;
+    data: IExecuteData;
+  }): Promise<void> {
+    const { taskId, emailNotice } = task;
+    const { runMode } = data;
+    // 记录日志
+    await this.taskLogMapping.saveNew({
+      taskId,
+      result: RESULT.FAIL,
+      consumeTime: timing,
+      detail: error.message,
+      runMode,
+    });
+    // TODO 发送邮件通知
+    emailNotice.valueOf();
   }
 
   /**
    * 在执行完定时后，检测任务
    */
-  async checkTaskAfterExecute(task: TaskEntity) {}
+  async checkTaskAfterExecute(task: TaskEntity): Promise<void> {
+    if (task.limit > 0) {
+      await this.mapping.modify(
+        { limit: task.limit - 1 },
+        { taskId: task.taskId }
+      );
+    }
+    task = await this.mapping.findByPk(task.taskId);
 
-  // TODO 待删除
+    if (this._checkTaskIsNeedStop(task)) {
+      await this.mapping.modify(
+        { status: STATUS.STOP },
+        { taskId: task.taskId }
+      );
+    }
+  }
+
+  // 判断任务是否需要停止
+  private _checkTaskIsNeedStop(task: TaskEntity): boolean {
+    const FORMAT = 'second';
+    if (
+      task.limit === 0 ||
+      (task.endTime &&
+        this.utils.diffDate(this.utils.getDateNow(), task.endTime, FORMAT) >= 0)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  // TODO 用户测试，待删除
   async test() {
     // 3秒后触发分布式任务调度。
     await this.queueService.execute(

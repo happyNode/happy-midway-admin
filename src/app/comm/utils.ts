@@ -94,6 +94,11 @@ export default class Utils {
     return dateStr;
   }
 
+  diffDate(date1, date2, format: any = 'day') {
+    const diff = dayjs(date1).diff(dayjs(date2), format);
+    return diff;
+  }
+
   bigEq(a, b) {
     return new BigNumber(a).eq(b);
   }
