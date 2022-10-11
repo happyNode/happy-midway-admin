@@ -1,7 +1,7 @@
 import { Column, DataType, Table, Model } from 'sequelize-typescript';
 
 @Table({
-  modelName: 'sys_task',
+  modelName: 'task',
   timestamps: true,
 })
 export class TaskEntity extends Model {
@@ -29,6 +29,17 @@ export class TaskEntity extends Model {
     comment: '任务所属应用ID: 0-无所属',
   })
   appId: number;
+
+  @Column({
+    type: DataType.TINYINT({
+      length: 1,
+      unsigned: true,
+    }),
+    field: 'user_id',
+    allowNull: false,
+    comment: '用户id',
+  })
+  userId: number;
 
   @Column({
     type: DataType.STRING(64),
@@ -116,6 +127,15 @@ export class TaskEntity extends Model {
     comment: '参数',
   })
   args: string;
+
+  @Column({
+    type: DataType.STRING(128),
+    field: 'email_notice',
+    allowNull: false,
+    defaultValue: '',
+    comment: '异常邮件通知地址（多个地址用逗号隔开）',
+  })
+  emailNotice: string;
 
   @Column({
     type: DataType.STRING(128),

@@ -23,8 +23,8 @@ export interface IAccessLogConfig {
   ignore: RegExp[];
 }
 
-export interface ExecuteData {
-  id: number;
+export interface IExecuteData {
+  taskId: number;
   args: string;
   runMode?: number;
 }

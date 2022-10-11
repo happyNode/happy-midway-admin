@@ -16,6 +16,7 @@ import {
   UpdateTaskDTO,
   GetListDTO,
   TaskIdDTO,
+  GetLogsDTO,
 } from './../model/dto/task';
 
 @Controller('/task', {
@@ -29,14 +30,15 @@ export class TaskController extends BaseController {
   @Validate()
   @Get('/test', { summary: '测试' })
   async test() {
-    const res = await this.taskService.execute();
+    const res = await this.taskService.test();
     return this.success(res);
   }
 
   @Validate()
   @Post('/add', { routerName: '添加任务' })
   async add(@Body(ALL) params: CreateTaskDTO) {
-    const res = await this.taskService.addTask(params);
+    // TODO 获取用户id
+    const res = await this.taskService.addTask(1, params);
     return this.success(res);
   }
 
@@ -88,21 +90,25 @@ export class TaskController extends BaseController {
 
   @Validate()
   @Post('/remove', { routerName: '删除任务' })
-  async remove(@Body(ALL) params) {
-    return this.success();
+  async remove(@Body(ALL) params: TaskIdDTO) {
+    const { taskId } = params;
+    const res = await this.taskService.once(taskId);
+    return this.success(res);
   }
 
   @Validate()
   @Post('/select', {
     routerName: '获取任务下拉框列表(展示字段:id、任务名称)(不分页)',
   })
-  async select(@Body(ALL) params) {
-    return this.success();
+  async select() {
+    const res = await this.taskService.select();
+    return this.success(res);
   }
 
   @Validate()
-  @Get('/log/page', { routerName: '查询任务日志列表(分页)' })
-  async logPage(@Query(ALL) params) {
-    return this.success();
+  @Get('/logs', { routerName: '查询任务日志列表(分页)' })
+  async logPage(@Query(ALL) params: GetLogsDTO) {
+    const res = await this.taskService.logs(params);
+    return this.success(res);
   }
 }

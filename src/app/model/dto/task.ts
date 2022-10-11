@@ -29,6 +29,9 @@ export class CreateTaskDTO {
   @Rule(RuleType.string().min(2).max(50).required())
   taskName: string;
 
+  @Rule(RuleType.number().integer().default(0).optional())
+  appId: number;
+
   @Rule(RuleType.number().integer().valid(1, 2).required())
   type: number;
 
@@ -66,6 +69,9 @@ export class CreateTaskDTO {
   args: string;
 
   @Rule(RuleType.string().empty('').allow(null).optional())
+  emailNotice: string;
+
+  @Rule(RuleType.string().empty('').allow(null).optional())
   remark: string;
 }
 
@@ -75,3 +81,8 @@ export class UpdateTaskDTO extends CreateTaskDTO {
 }
 
 export class GetListDTO extends QueryParamDTO {}
+
+export class GetLogsDTO extends QueryParamDTO {
+  @Rule(RuleType.number().integer().greater(0).optional())
+  taskId?: number;
+}
