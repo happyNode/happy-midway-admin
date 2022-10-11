@@ -65,7 +65,7 @@ export class CreateUserDto {
   )
   username: string;
 
-  @ApiProperty({ type: 'array', description:'角色' })
+  @ApiProperty({ type: 'object', description:'角色' })
   @Rule(RuleType.array().items(RuleType.number()).min(1).max(3).required())
   roles: number[];
 
@@ -86,9 +86,23 @@ export class CreateUserDto {
   status: number;
 }
 
-@Rule(CreateUserDto)
 export class UpdateUserDto extends CreateUserDto {
   @ApiProperty({ type: 'number', description:'需要更新的管理员ID' })
   @Rule(RuleType.number().integer().required())
   userId: number;
+}
+
+export class PasswordUserDto {
+  @ApiProperty({ type: 'number', description:'需要更改密码的管理员ID' })
+  @Rule(RuleType.number().integer().required())
+  userId: number;
+
+  @ApiProperty({ type: 'string', description:'更改的新密码' })
+  @Rule(
+    RuleType.string()
+      .min(6)
+      .pattern(/^[a-z0-9A-Z`~!#%^&*=+\\|{};:'\\",<>/?]+$/)
+      .required()
+  )
+  password: string;
 }

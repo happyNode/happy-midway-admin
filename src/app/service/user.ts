@@ -245,7 +245,6 @@ export class UserService extends BaseService {
    */
   async page(
     uid: number,
-    deptIds: number[],
     page: number,
     count: number
   ): Promise<IPageSearchUserResult[]> {

@@ -27,11 +27,11 @@ export class CreateRoleDto {
   remark: string;
 
   @ApiProperty({
-    type: 'array',
+    type: 'object',
     description: '菜单',
   })
   @Rule(RuleType.array().items(RuleType.number()).min(0).optional())
-  menus: number[];
+  menus: Array<number>;
 }
 
 export class UpdateRoleDto extends CreateRoleDto {
@@ -41,4 +41,13 @@ export class UpdateRoleDto extends CreateRoleDto {
   })
   @Rule(RuleType.number().integer().required())
   roleId: number;
+}
+
+export class DeleteRoleDto {
+  @ApiProperty({
+    type: 'object',
+    description: '角色id',
+  })
+  @Rule(RuleType.array().items(RuleType.number()).min(1))
+  roleIds: Array<number>;
 }
