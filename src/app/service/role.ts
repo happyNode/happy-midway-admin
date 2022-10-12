@@ -30,7 +30,7 @@ export class RoleService extends BaseService {
    * 列举所有角色：除去超级管理员
    */
   async list(): Promise<RoleEntity[]> {
-    const result = await this.mapping.findAll({ id: {
+    const result = await this.mapping.findAll({ roleId: {
       [Op.notIn]: this.rootRoleId,
       } });
     return result;
@@ -50,7 +50,7 @@ export class RoleService extends BaseService {
    * 根据角色获取角色信息
    */
   async info(rid: number): Promise<IRoleInfoResult> {
-    const roleInfo = await this.mapping.findOne({ id: rid });
+    const roleInfo = await this.mapping.findOne({ roleId: rid });
     const menus = await this.roleMenuMapping.findAll({ roleId: rid });
     return { roleInfo, menus };
   }
@@ -109,7 +109,7 @@ export class RoleService extends BaseService {
    */
   async update(param: UpdateRoleDto): Promise<RoleEntity> {
     const { roleId, name, label, remark, menus } = param;
-    const role = await this.mapping.saveNew({ id: roleId, name, label, remark });
+    const role = await this.mapping.saveNew({ roleId, name, label, remark });
     const originMenuRows = await this.roleMenuMapping.findAll({ roleId });
     const originMenuIds = originMenuRows.map(e => {
       return e.menuId;
@@ -156,19 +156,12 @@ export class RoleService extends BaseService {
   /**
    * 分页加载角色信息
    */
-  async page(page: number, count: number): Promise<RoleEntity[]> {
-    const result = await this.mapping.findAll({
-      where: {
-        id: {
-          [Op.notIn]: this.rootRoleId,
-        },
+  async page(page: number, count: number): Promise<{rows: RoleEntity[], count: number}> {
+    const result = await this.mapping.findAndCountAll(page, count,{
+      roleId: {
+        [Op.notIn]: this.rootRoleId,
       },
-      order: {
-        id: 'ASC',
-      },
-      take: count,
-      skip: page * count,
-    });
+    }, {});
     return result;
   }
 
@@ -177,9 +170,7 @@ export class RoleService extends BaseService {
    */
   async getRoleIdByUser(id: number): Promise<number[]> {
     const result = await this.userRoleMapping.findAll({
-      where: {
-        userId: id,
-      },
+      userId: id,
     });
     if (!isEmpty(result)) {
       return map(result, v => {

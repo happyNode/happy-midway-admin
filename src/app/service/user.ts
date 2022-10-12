@@ -1,5 +1,5 @@
 import { Provide, Inject, Config } from '@midwayjs/decorator';
-import { isEmpty, findIndex } from 'lodash';
+import { isEmpty } from 'lodash';
 import { Op } from "sequelize";
 
 import { UserMapping } from '../mapping/user';
@@ -11,6 +11,14 @@ import Crypto from '../comm/crypto';
 import { UserRoleMapping } from "../mapping/userRole";
 import { UserRoleEntity } from "../entity/userRole";
 import { RoleEntity } from "../entity/role";
+import {AdminLoginDTO} from "../model/dto/admin";
+import MyError from "../comm/myError";
+import {JwtService} from "@midwayjs/jwt";
+
+enum ADMIN_STATUS {
+  NORMAL = 1,
+  BAN = -1,
+}
 
 @Provide()
 export class UserService extends BaseService {
@@ -22,6 +30,9 @@ export class UserService extends BaseService {
 
   @Inject()
   protected crypto: Crypto;
+
+  @Inject()
+  private jwtService: JwtService;
 
   @Config('rootRoleId')
   rootRoleId: number;
@@ -95,6 +106,7 @@ export class UserService extends BaseService {
     if (!isEmpty(exists)) {
       return false;
     }
+
     // 所有用户初始密码为123456
     const t = await this.mapping.getTransaction();
     try {
@@ -124,6 +136,7 @@ export class UserService extends BaseService {
       });
       await t.commit();
     } catch (e) {
+      console.log(e);
       await t.rollback();
     }
     return true;
@@ -235,7 +248,10 @@ export class UserService extends BaseService {
    * 查找超管的用户ID
    */
   async findRootUserId(): Promise<number> {
-    const result = await this.userRoleMapping.findOne({ id: this.rootRoleId });
+    const result = await this.userRoleMapping.findOne({ userId: this.rootRoleId });
+    if (!result) {
+      return 0;
+    }
     return result.userId;
   }
 
@@ -246,11 +262,11 @@ export class UserService extends BaseService {
   async page(
     uid: number,
     page: number,
-    count: number
-  ): Promise<IPageSearchUserResult[]> {
+    limit: number
+  ): Promise<{list: IPageSearchUserResult[], count: number}> {
     const rootUserId = await this.findRootUserId();
 
-    const result = await this.mapping.findAll(
+    const { rows: result, count } = await this.mapping.findAndCountAll(page, limit,
       {
       userId: {
         [Op.notIn]: [rootUserId, uid]
@@ -267,34 +283,30 @@ export class UserService extends BaseService {
             ]
           }
         ],
-        offset: page * count,
-        limit: count,
       });
     const dealResult: IPageSearchUserResult[] = [];
     // 过滤去重
     result.forEach(e => {
-      const index = findIndex(dealResult, e2 => e2.userId === e.userId);
-      if (index < 0) {
-        // 当前元素不存在则插入
-        dealResult.push({
-          createdAt: e.createdAt,
-          email: e.email,
-          headImg: e.headImg,
-          userId: e.userId,
-          name: e.name,
-          phone: e.phone,
-          remark: e.remark,
-          status: e.status,
-          updatedAt: e.updatedAt,
-          username: e.username,
-          roleNames: [e.userRoles.role.name],
-        });
-      } else {
-        // 已存在
-        dealResult[index].roleNames.push(e.userRoles.role.name);
-      }
+      const roleData = {
+        createdAt: e.createdAt,
+        email: e.email,
+        headImg: e.headImg,
+        userId: e.userId,
+        name: e.name,
+        phone: e.phone,
+        remark: e.remark,
+        status: e.status,
+        updatedAt: e.updatedAt,
+        username: e.username,
+        roleNames: [],
+      };
+      const roleNames = e.userRoles.map(e2 => {
+        return e2.role.name
+      })
+      roleData.roleNames = roleNames;
+      dealResult.push(roleData);
     });
-    return dealResult;
+    return { list: dealResult, count };
   }
 
   /**
@@ -337,5 +349,38 @@ export class UserService extends BaseService {
         parseInt(v!) + 1
       );
     }
+  }
+
+  // 登录
+  async login(param: AdminLoginDTO) {
+    const { account, pwd } = param;
+    const user = await this.mapping.findOne({
+      username: account,
+      status: ADMIN_STATUS.NORMAL,
+    });
+    if (this.utils.isEmpty(user)) {
+      throw new MyError('用户不存在');
+    }
+
+    const { password, userId } = user;
+
+    const correct = this.crypto.compareSync(pwd, password);
+    if (!correct) {
+      throw new MyError('密码错误');
+    }
+
+    const token = await this.jwtService.sign({
+      userId,
+      email: '',
+      type: 1,
+    });
+
+    await this.getAdminRedis().set(`admin:passwordVersion:${userId}`, 1);
+    await this.getAdminRedis().set(`admin:token:${userId}`, token);
+
+    return {
+      token,
+      account,
+    };
   }
 }

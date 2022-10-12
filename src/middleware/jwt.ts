@@ -28,7 +28,7 @@ export class JwtMiddleware implements IMiddleware<Context, NextFunction> {
         throw new httpError.UnauthorizedError();
       }
       try {
-        const user = await this.jwtService.verify(token, { complete: true });
+        const user = await this.jwtService.verify(token, {});
         ctx.state.token = token;
         ctx.state.user = user;
       } catch (error) {

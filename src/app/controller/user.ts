@@ -15,6 +15,7 @@ import { MenuService } from "../service/menu";
 import {CreateUserDto, PasswordUserDto, UpdateUserDto} from "../model/dto/user";
 import MyError from "../comm/myError";
 import {QueryParamDTO} from "../model/dto/base";
+import {AdminLoginDTO} from "../model/dto/admin";
 
 @Controller('/user', { tagName: 'User', description: '用户管理控制器' })
 export class UserController extends BaseController {
@@ -24,7 +25,7 @@ export class UserController extends BaseController {
   @Inject()
   protected menuService: MenuService;
 
-  @Get('/:userId', { summary: '用户详情' })
+  @Get('/info/:userId', { summary: '用户详情' })
   @Validate()
   async index(@Param('userId')userId: number) {
     const user = await this.service.info(userId);
@@ -34,16 +35,13 @@ export class UserController extends BaseController {
   @Get('/page')
   @Validate()
   async page(@Query(ALL) dto: QueryParamDTO){
-    const list = await this.service.page(
-      this.ctx.admin.uid,
+    const { list, count} = await this.service.page(
+      0,
       dto.page - 1,
       dto.limit
     );
-    const total = await this.service.count(
-      this.ctx.admin.uid,
-    );
     return this.success({
-      list, total
+      list, total: count
     });
   }
 
@@ -91,5 +89,15 @@ export class UserController extends BaseController {
       dto.password
     );
     return this.success();
+  }
+
+  @Validate()
+  @Post('/login', { summary: '用户登录' })
+  async login(
+    @Body()
+      param: AdminLoginDTO
+  ) {
+    const res = await this.service.login(param);
+    return this.success(res);
   }
 }

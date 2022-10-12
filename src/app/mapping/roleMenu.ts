@@ -13,6 +13,6 @@ export class RoleMenuMapping extends BaseMapping<RoleMenuEntity> {
     roleId: number;
     menuId: number;
   }[], options = {}) {
-    await this.repository.bulkBuild(params, options);
+    await this.repository.bulkCreate(params, options);
   }
 }

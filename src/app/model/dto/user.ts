@@ -58,7 +58,7 @@ export class CreateUserDto {
   @ApiProperty({ type: 'string', description:'管理员登录账号',example: 'xxxx' })
   @Rule(
     RuleType.string()
-      .min(6)
+      .min(1)
       .max(20)
       .pattern(/^[a-z0-9A-Z]+$/)
       .required()

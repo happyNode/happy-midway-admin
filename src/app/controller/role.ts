@@ -23,7 +23,7 @@ export class RoleController extends BaseController {
   @Inject()
   menuService: MenuService
 
-  @Get('/:roleId', { summary: '角色详情' })
+  @Get('/info/:roleId', { summary: '角色详情' })
   @Validate()
   async info(@Param('roleId') roleId: number) {
     const res = await this.roleService.info(roleId);
@@ -40,12 +40,8 @@ export class RoleController extends BaseController {
   @Validate()
   @Get('/page',{ summary: '分页查询角色信息' })
   async page(@Query(ALL) dto: QueryParamDTO): Promise<any> {
-    const list = await this.roleService.page(dto.page - 1, dto.limit);
-    const count = await this.roleService.count();
-    return this.success({
-      list,
-      count,
-    });
+    const res = await this.roleService.page(dto.page - 1, dto.limit);
+    return this.success(res);
   }
 
   @Validate()

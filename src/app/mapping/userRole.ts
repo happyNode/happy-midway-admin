@@ -13,6 +13,6 @@ export class UserRoleMapping extends BaseMapping<UserRoleEntity> {
     userId: number;
     roleId: number;
   }[], options = {}) {
-    await this.repository.bulkBuild(params, options);
+    await this.repository.bulkCreate(params, options);
   }
 }

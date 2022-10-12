@@ -18,7 +18,8 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
   };
   config.jwtWhitelist = [
     '/swagger-ui',
-    '/api/admin/login',
+    '/api/admin/public/login',
+    '/api/user/login',
     '/api',
     '/api/user',
   ];
@@ -87,5 +88,6 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     },
   };
 
+  config.rootRoleId = [0];
   return config;
 };

@@ -125,7 +125,7 @@ export class MenuService extends BaseService {
       // root find all perms
       result = await this.mapping.findAll({
         perms: {
-        [Op.notIn]: null,
+        [Op.not]: null,
         }, type: 2 });
     } else {
       const options = {
@@ -140,7 +140,7 @@ export class MenuService extends BaseService {
       }
       result = await this.mapping.findAll({
         perms: {
-          [Op.notIn]: null,
+          [Op.not]: null,
         }, type: 2 }, options);
     }
     if (!isEmpty(result)) {

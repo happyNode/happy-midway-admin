@@ -59,13 +59,14 @@ export abstract class BaseMapping<T extends Model = Model> {
     return res;
   }
 
-  async findAndCountAll(page: number, limit: number, where = {}) {
+  async findAndCountAll(page: number, limit: number, where = {}, options = {}) {
     const offset = (page - 1) * limit;
     const res = await this.repository.findAndCountAll({
       where,
       limit,
       offset: offset > 0 ? offset : 0,
       order: [['createdAt', 'desc']],
+      ...options,
     });
     return res;
   }

@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import {UserRoleEntity} from "./userRole";
 
 @Table({
-  modelName: 'sys_user',
+  modelName: 'user',
   timestamps: true,
 })
 export class UserEntity extends Model {
@@ -36,7 +36,7 @@ export class UserEntity extends Model {
     set(val) {
       const salt = bcrypt.genSaltSync(10);
       const pwd = bcrypt.hashSync(val, salt);
-      this.setDataValue('loginPwd', pwd);
+      this.setDataValue('password', pwd);
     },
   })
   password: string;
@@ -99,5 +99,5 @@ export class UserEntity extends Model {
     sourceKey: 'userId',
     foreignKey: 'userId',
   })
-  userRoles: UserRoleEntity;
+  userRoles: UserRoleEntity[];
 }
