@@ -93,8 +93,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ddzyan/midway-practice.git"
+    "url": "https://github.com/happyNode/happy-midway-admin.git"
   },
-  "author": "dingdongzhao",
+  "author": "happyNode",
   "license": "MIT"
 }
