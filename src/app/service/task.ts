@@ -192,7 +192,7 @@ export class TaskService extends BaseService {
   private _getRepeatOptions(
     task: TaskEntity
   ): CronRepeatOptions | EveryRepeatOptions {
-    let repeat: CronRepeatOptions | EveryRepeatOptions;
+    let repeat: any = {};
     if (task.endTime) {
       repeat.endDate = task.endTime;
     }
@@ -225,7 +225,7 @@ export class TaskService extends BaseService {
   private async _start(task: TaskEntity): Promise<void> {
     // 先停掉之前存在的任务
     await this._stop(task);
-
+    const repeat = this._getRepeatOptions(task);
     const job = await this.queueService.execute(
       TaskExecuter,
       { taskId: task.taskId, args: task.args, runMode: RUN_MODE.AUTO },
@@ -233,7 +233,7 @@ export class TaskService extends BaseService {
         jobId: task.taskId,
         removeOnComplete: true,
         removeOnFail: true,
-        repeat: this._getRepeatOptions(task),
+        repeat,
       }
     );
 
@@ -407,19 +407,5 @@ export class TaskService extends BaseService {
       return true;
     }
     return false;
-  }
-
-  // TODO 用户测试，待删除
-  async test() {
-    // 3秒后触发分布式任务调度。
-    await this.queueService.execute(
-      TaskExecuter,
-      { id: 1, args: 'http://127.0.0.1:7002/api/home/test' },
-      {
-        repeat: {
-          cron: '0 * * * * *',
-        },
-      }
-    );
   }
 }
