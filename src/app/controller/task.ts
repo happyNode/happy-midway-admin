@@ -28,10 +28,9 @@ export class TaskController extends BaseController {
   protected taskService: TaskService;
 
   @Validate()
-  @Get('/test', { summary: '测试' })
+  @Post('/test', { summary: '测试' })
   async test() {
-    const res = await this.taskService.test();
-    return this.success(res);
+    return this.success('hello world!');
   }
 
   @Validate()
@@ -92,12 +91,12 @@ export class TaskController extends BaseController {
   @Post('/remove', { routerName: '删除任务' })
   async remove(@Body(ALL) params: TaskIdDTO) {
     const { taskId } = params;
-    const res = await this.taskService.once(taskId);
+    const res = await this.taskService.remove(taskId);
     return this.success(res);
   }
 
   @Validate()
-  @Post('/select', {
+  @Get('/select', {
     routerName: '获取任务下拉框列表(展示字段:id、任务名称)(不分页)',
   })
   async select() {
