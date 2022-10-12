@@ -1,5 +1,5 @@
 import { Column, DataType, Table, Model, HasOne } from 'sequelize-typescript';
-import { RoleEntity } from "./role";
+import { RoleEntity } from './role';
 
 @Table({
   modelName: 'user_role',
