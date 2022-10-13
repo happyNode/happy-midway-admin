@@ -8,6 +8,7 @@ import {
   Post,
   Body,
   ALL,
+  Param,
 } from '@midwayjs/decorator';
 import { BaseController } from '../../core/baseController';
 import { MenuService } from "../service/menu";
@@ -19,14 +20,17 @@ export class MenuController extends BaseController {
   @Inject()
   menuService: MenuService
 
-  @Get('/:menu', { summary: '菜单详情' })
+  @Get('/info/:menuId', { summary: '菜单详情' })
   @Validate()
-  async index() {}
+  async info(@Param('menuId') menuId: number) {
+    const menuInfo = await this.menuService.getMenuItemAndParentInfo(menuId);
+    return this.success(menuInfo);
+  }
 
   @Get('/list', { summary: '获取对应权限的菜单列表' })
   @Validate()
   async menuList() {
-    const res = await this.menuService.getMenus(this.ctx.admin.uid);
+    const res = await this.menuService.getMenus(this.ctx.state.user.userId);
     return this.success(res);
   }
 
@@ -36,11 +40,11 @@ export class MenuController extends BaseController {
   })
   @Validate()
   async create(@Body(ALL) dto: CreateMenuDto) {
-    if (dto.type === 2 && dto.parentId === -1) {
+    if (dto.type === 2 && dto.parentId === 0) {
       // 无法直接创建权限，必须有ParentId
       throw new MyError('权限必须包含父节点');
     }
-    if (dto.type === 1 && dto.parentId !== -1) {
+    if (dto.type === 1 && dto.parentId !== 0) {
       const parent = await this.menuService.getMenuItemInfo(
         dto.parentId
       );
@@ -51,9 +55,6 @@ export class MenuController extends BaseController {
         // 当前新增为菜单但父节点也为菜单时为非法操作
         throw new MyError('非法操作：该节点仅支持目录类型父节点');
       }
-    }
-    if (dto.parentId === -1) {
-      dto.parentId = undefined;
     }
     await this.menuService.save(dto);
     if (dto.type === 2) {
@@ -68,11 +69,11 @@ export class MenuController extends BaseController {
   })
   @Validate()
   async modify(@Body(ALL) dto: UpdateMenuDto) {
-    if (dto.type === 2 && dto.parentId === -1) {
+    if (dto.type === 2 && dto.parentId === 0) {
       // 无法直接创建权限，必须有ParentId
       throw new MyError('权限必须包含父节点');
     }
-    if (dto.type === 1 && dto.parentId !== -1) {
+    if (dto.type === 1 && dto.parentId !== 0) {
       const parent = await this.menuService.getMenuItemInfo(
         dto.parentId
       );
@@ -84,14 +85,7 @@ export class MenuController extends BaseController {
         throw new MyError('非法操作：该节点仅支持目录类型父节点');
       }
     }
-    if (dto.parentId === -1) {
-      dto.parentId = null;
-    }
-    const insertData: CreateMenuDto & { id: number } = {
-      ...dto,
-      id: dto.menuId,
-    };
-    await this.menuService.save(insertData);
+    await this.menuService.modify(dto, dto.menuId);
     if (dto.type === 2) {
       // 如果是权限发生更改，则刷新所有在线用户的权限
       await this.menuService.refreshOnlineUserPerms();
@@ -99,7 +93,7 @@ export class MenuController extends BaseController {
     return this.success();
   }
 
-  @Post('/del', {
+  @Post('/delete', {
     summary: '删除菜单',
     description: '',
   })

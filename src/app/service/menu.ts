@@ -32,10 +32,21 @@ export class MenuService extends BaseService {
    * 保存或新增菜单
    */
   async save(
-    menu: CreateMenuDto & { id?: number }
+    menu: CreateMenuDto & { menuId?: number }
   ): Promise<MenuEntity> {
     const result = await this.mapping.saveNew(menu);
     return result;
+  }
+  /**
+   * 保存或新增菜单
+   */
+  async modify(
+    menu: CreateMenuDto,menuId: number
+  ): Promise<void> {
+    await this.mapping.modify(menu, {
+      menuId,
+    });
+    return;
   }
 
   /**
@@ -75,10 +86,10 @@ export class MenuService extends BaseService {
     for (let i = 0; i < menus.length; i++) {
       if (menus[i].type !== 2) {
         // 子目录下是菜单或目录，继续往下级查找
-        const c = await this.findChildMenus(menus[i].id);
+        const c = await this.findChildMenus(menus[i].menuId);
         allMenus.push(c);
       }
-      allMenus.push(menus[i].id);
+      allMenus.push(menus[i].menuId);
     }
     return allMenus;
   }
@@ -88,7 +99,7 @@ export class MenuService extends BaseService {
    * @param mid menu id
    */
   async getMenuItemInfo(mid: number): Promise<MenuEntity> {
-    const menu = await this.mapping.findOne({ id: mid });
+    const menu = await this.mapping.findOne({ menuId: mid });
     return menu;
   }
 
@@ -98,10 +109,10 @@ export class MenuService extends BaseService {
   async getMenuItemAndParentInfo(
     mid: number
   ): Promise<IMenuItemAndParentInfoResult> {
-    const menu = await this.mapping.findOne({ id: mid });
+    const menu = await this.mapping.findOne({ menuId: mid });
     let parentMenu: MenuEntity | undefined = undefined;
     if (menu && menu.parentId) {
-      parentMenu = await this.mapping.findOne({ id: menu.parentId });
+      parentMenu = await this.mapping.findOne({ menuId: menu.parentId });
     }
     return { menu, parentMenu };
   }
@@ -156,7 +167,9 @@ export class MenuService extends BaseService {
    * 删除多项菜单
    */
   async deleteMenuItem(mids: number[]): Promise<number> {
-    return await this.mapping.destroy(mids);
+    return await this.mapping.destroy({
+      menuId: mids,
+    });
   }
 
   /**

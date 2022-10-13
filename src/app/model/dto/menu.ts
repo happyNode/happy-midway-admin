@@ -1,26 +1,47 @@
-import { Expose } from 'class-transformer';
 import { Rule, RuleType } from '@midwayjs/validate';
+import {ApiProperty} from "@midwayjs/swagger";
 
 /**
  * 增加菜单
  */
 export class CreateMenuDto {
+  @ApiProperty({
+    type: 'number',
+    description: '类型',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().min(0).max(2).required())
-  @Expose()
   type: number;
 
+  @ApiProperty({
+    type: 'number',
+    description: '父级id',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().required())
-  @Expose()
   parentId: number;
 
+  @ApiProperty({
+    type: 'string',
+    description: '名称',
+    example: 'xxx',
+  })
   @Rule(RuleType.string().min(2).required())
-  @Expose()
   name: string;
 
+  @ApiProperty({
+    type: 'number',
+    description: '排名',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().min(0))
-  @Expose()
-  orderNum: number;
+  rank: number;
 
+  @ApiProperty({
+    type: 'string',
+    description: '路由',
+    example: '1',
+  })
   @Rule(
     RuleType.string().when('type', {
       switch: [
@@ -36,11 +57,15 @@ export class CreateMenuDto {
       otherwise: RuleType.optional(),
     })
   )
-  @Expose()
   router: string;
 
+  @ApiProperty({
+    type: 'number',
+    description: '是否显示 0:不显示 1:显示',
+    example: '1',
+  })
   @Rule(
-    RuleType.boolean().when('type', {
+    RuleType.number().when('type', {
       switch: [
         {
           is: 1,
@@ -54,11 +79,15 @@ export class CreateMenuDto {
       otherwise: RuleType.optional(),
     })
   )
-  @Expose()
-  isShow: boolean;
+  isShow: number;
 
+  @ApiProperty({
+    type: 'number',
+    description: '路由缓存',
+    example: '1',
+  })
   @Rule(
-    RuleType.boolean().when('type', {
+    RuleType.number().when('type', {
       switch: [
         {
           is: 1,
@@ -68,9 +97,13 @@ export class CreateMenuDto {
       otherwise: RuleType.optional(),
     })
   )
-  @Expose()
   keepalive: boolean;
 
+  @ApiProperty({
+    type: 'string',
+    description: '图标',
+    example: 'xxx',
+  })
   @Rule(
     RuleType.string().when('type', {
       switch: [
@@ -86,9 +119,13 @@ export class CreateMenuDto {
       otherwise: RuleType.optional(),
     })
   )
-  @Expose()
   icon: string;
 
+  @ApiProperty({
+    type: 'string',
+    description: '权限表示',
+    example: 'xxx',
+  })
   @Rule(
     RuleType.string().when('type', {
       is: 2,
@@ -96,18 +133,25 @@ export class CreateMenuDto {
       otherwise: RuleType.allow('').optional(),
     })
   )
-  @Expose()
   perms: string;
 
+  @ApiProperty({
+    type: 'string',
+    description: ' 视图地址，对应vue文件',
+    example: 'xxx',
+  })
   @Rule(RuleType.string())
-  @Expose()
   viewPath: string;
 }
 
 @Rule(CreateMenuDto)
 export class UpdateMenuDto extends CreateMenuDto {
+  @ApiProperty({
+    type: 'number',
+    description: '菜单id',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().required())
-  @Expose()
   menuId: number;
 }
 
@@ -115,8 +159,12 @@ export class UpdateMenuDto extends CreateMenuDto {
  * 删除菜单
  */
 export class DeleteMenuDto {
+  @ApiProperty({
+    type: 'number',
+    description: '菜单id',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().required())
-  @Expose()
   menuId: number;
 }
 
@@ -124,7 +172,11 @@ export class DeleteMenuDto {
  * 查询菜单
  */
 export class InfoMenuDto {
+  @ApiProperty({
+    type: 'number',
+    description: '菜单id',
+    example: '1',
+  })
   @Rule(RuleType.number().integer().required())
-  @Expose()
   menuId: number;
 }
