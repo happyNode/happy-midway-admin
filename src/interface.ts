@@ -1,6 +1,6 @@
-import { MenuEntity } from "./app/entity/menu";
-import { RoleEntity } from "./app/entity/role";
-import { RoleMenuEntity } from "./app/entity/roleMenu";
+import { MenuEntity } from './app/entity/menu';
+import { RoleEntity } from './app/entity/role';
+import { RoleMenuEntity } from './app/entity/roleMenu';
 
 export { NpmPkg } from '@waiting/shared-types';
 
@@ -59,4 +59,14 @@ export interface IPageSearchUserResult {
   updatedAt: string;
   username: string;
   roleNames: string[];
+}
+
+export interface IImageCaptchaResult {
+  img: string;
+  id: string;
+}
+
+export interface ITaskArgs {
+  method: string;
+  url: string;
 }

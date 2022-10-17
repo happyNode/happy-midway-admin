@@ -1,5 +1,5 @@
 import { Rule, RuleType } from '@midwayjs/validate';
-import {ApiProperty} from "@midwayjs/swagger";
+import { ApiProperty } from '@midwayjs/swagger';
 
 /**
  * 增加菜单

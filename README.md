@@ -1,5 +1,17 @@
 # 简介
 
-使用 midway + koa + ORM + Restful 接口基础功能，应用服务基础功能，做到业务开发开箱即用。
-
 ![img](./assert/智慧中台ER.png)
+
+# 使用
+
+创建数据库 sf-admin，使用 sql/midway-admin.sql 初始化数据库
+
+配置 .env 文件，配置参数参考 .env.local
+
+启动
+
+```
+npm install
+
+npm run dev
+```

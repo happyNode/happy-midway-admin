@@ -2,7 +2,7 @@ import * as koa from '@midwayjs/koa';
 import { App, Provide, Queue, Inject } from '@midwayjs/decorator';
 
 import { IExecuteData } from '../interface';
-import { TaskService } from './../app/service/task';
+import { TaskService } from '../app/service/admin/sys/task';
 import Utils from './../app/comm/utils';
 
 @Queue()
@@ -22,8 +22,8 @@ export class TaskExecuter {
     // 在定时执行前检测并获取定时任务配置
     const task = await taskService.checkTaskBeforeExecute(taskId);
     try {
-      // TODO 待支持多种任务类型，封装成一个统一的执行入口方法
-      const result = await this.utils.post(args, {});
+      // 传入参数，根据参数执行具体的任务
+      const result = await taskService.callTask(args);
 
       const timing = Date.now() - startTime;
       // 任务执行成功

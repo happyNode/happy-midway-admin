@@ -125,6 +125,10 @@ export class TaskEntity extends Model {
     allowNull: false,
     defaultValue: '',
     comment: '参数',
+    set(val) {
+      const args = (val as string).replace(/'/g, '"');
+      this.setDataValue('args', args);
+    },
   })
   args: string;
 

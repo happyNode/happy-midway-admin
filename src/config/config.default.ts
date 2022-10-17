@@ -19,9 +19,10 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
   config.jwtWhitelist = [
     '/swagger-ui',
     '/api/admin/public/login',
-    '/api/user/login',
+    '/api/public/login',
     '/api',
     '/api/user',
+    '/api/public/captcha/img',
   ];
   config.cors = {
     allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

@@ -24,7 +24,7 @@ import { AccessLogMiddleware } from './middleware/accessLog';
 import { JwtMiddleware } from './middleware/jwt';
 import { AdminReqLogMiddleware } from './middleware/adminReqLog';
 import { NotFoundFilter } from './filter/notfound';
-import { TaskService } from './app/service/task';
+import { TaskService } from './app/service/admin/sys/task';
 
 @Configuration({
   importConfigs: [join(__dirname, './config')],
