@@ -1,5 +1,5 @@
 import { Inject } from '@midwayjs/decorator';
-import { DatabaseError, ValidationError } from 'sequelize';
+import { Transaction, DatabaseError, ValidationError } from 'sequelize';
 import { Repository, Model } from 'sequelize-typescript';
 import { Context } from '@midwayjs/koa';
 
@@ -31,8 +31,8 @@ export abstract class BaseMapping<T extends Model = Model> {
     }
   }
 
-  async saveNew(param) {
-    const res = await this.repository.create(param);
+  async saveNew(param, options = {}) {
+    const res = await this.repository.create(param, options);
     return res;
   }
 
@@ -59,13 +59,14 @@ export abstract class BaseMapping<T extends Model = Model> {
     return res;
   }
 
-  async findAndCountAll(page: number, limit: number, where = {}) {
+  async findAndCountAll(page: number, limit: number, where = {}, options = {}) {
     const offset = (page - 1) * limit;
     const res = await this.repository.findAndCountAll({
       where,
       limit,
       offset: offset > 0 ? offset : 0,
       order: [['createdAt', 'desc']],
+      ...options,
     });
     return res;
   }
@@ -86,8 +87,21 @@ export abstract class BaseMapping<T extends Model = Model> {
     return res;
   }
 
+  async count(where, options = {}) {
+    const res = await this.repository.count({
+      where,
+      ...options,
+    });
+    return res;
+  }
+
   async queryRaw(sqlStr: string, option?: any) {
     const res = await this.repository.sequelize.query(sqlStr, option);
     return res;
+  }
+
+  async getTransaction(): Promise<Transaction> {
+    const t = await this.repository.sequelize.transaction();
+    return t;
   }
 }

@@ -1,7 +1,7 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 
-import { BaseService } from '../../core/baseService';
-import { SysReqLogMapping } from '../mapping/sysReqLog';
+import { BaseService } from '../../../../core/baseService';
+import { SysReqLogMapping } from '../../../mapping/sysReqLog';
 
 @Provide()
 export class SysReqLogService extends BaseService {

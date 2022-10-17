@@ -18,9 +18,11 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
   };
   config.jwtWhitelist = [
     '/swagger-ui',
-    '/api/admin/login',
+    '/api/admin/public/login',
+    '/api/public/login',
     '/api',
     '/api/user',
+    '/api/public/captcha/img',
   ];
   config.cors = {
     allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -87,5 +89,6 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     },
   };
 
+  config.rootRoleId = [0];
   return config;
 };

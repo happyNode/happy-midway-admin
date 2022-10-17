@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 
 @Provide()
 @Scope(ScopeEnum.Singleton)
-export default class Crypto {
+export class Crypto {
   @Config('keys')
   private cipherKey: string;
 

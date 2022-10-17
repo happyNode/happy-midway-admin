@@ -16,6 +16,7 @@ import * as sequlize from '@midwayjs/sequelize';
 import { join } from 'path';
 import * as jwt from '@midwayjs/jwt';
 import * as cache from '@midwayjs/cache';
+import * as axios from '@midwayjs/axios';
 
 import { RequestIdMiddleware } from './middleware/requestId';
 import { FormatMiddleware } from './middleware/format';
@@ -23,6 +24,7 @@ import { AccessLogMiddleware } from './middleware/accessLog';
 import { JwtMiddleware } from './middleware/jwt';
 import { AdminReqLogMiddleware } from './middleware/adminReqLog';
 import { NotFoundFilter } from './filter/notfound';
+import { TaskService } from './app/service/admin/sys/task';
 
 @Configuration({
   importConfigs: [join(__dirname, './config')],
@@ -39,6 +41,7 @@ import { NotFoundFilter } from './filter/notfound';
     validate,
     sequlize,
     jwt,
+    axios,
   ],
 })
 export class ContainerLifeCycle implements ILifeCycle {
@@ -56,6 +59,12 @@ export class ContainerLifeCycle implements ILifeCycle {
       AdminReqLogMiddleware,
     ]);
     this.app.useFilter([NotFoundFilter]);
+  }
+
+  async onServerReady(container: IMidwayContainer): Promise<void> {
+    // 初始化系统任务
+    const taskService = await container.getAsync(TaskService);
+    await taskService.initTask();
   }
 
   async onStop(): Promise<void> {}

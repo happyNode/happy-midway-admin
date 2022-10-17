@@ -1,7 +1,7 @@
 import { Provide } from '@midwayjs/decorator';
 import { Context, NextFunction } from '@midwayjs/koa';
 import { IMiddleware } from '@midwayjs/core';
-import { SysReqLogService } from '../app/service/sysReqLog';
+import { SysReqLogService } from '../app/service/admin/sys/sysReqLog';
 
 @Provide()
 export class AdminReqLogMiddleware

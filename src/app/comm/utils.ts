@@ -5,6 +5,7 @@ import * as dayjs from 'dayjs';
 import * as randomstring from 'randomstring';
 import { Context } from '@midwayjs/koa';
 import * as ipdb from 'ipip-ipdb';
+import { HttpService } from '@midwayjs/axios';
 
 const DATE_FORMATE = 'YYYY-MM-DD HH:mm:ss';
 
@@ -13,6 +14,9 @@ const DATE_FORMATE = 'YYYY-MM-DD HH:mm:ss';
 export default class Utils {
   @Inject()
   baseDir;
+
+  @Inject()
+  httpService: HttpService;
 
   // 获得请求IP
   getReqIP(ctx: Context) {
@@ -90,6 +94,11 @@ export default class Utils {
     return dateStr;
   }
 
+  diffDate(date1, date2, format: any = 'day') {
+    const diff = dayjs(date1).diff(dayjs(date2), format);
+    return diff;
+  }
+
   bigEq(a, b) {
     return new BigNumber(a).eq(b);
   }
@@ -119,5 +128,20 @@ export default class Utils {
       map.set(key, obj[key]);
     }
     return map;
+  }
+
+  async post(url: string, data: any, config?: {}): Promise<any> {
+    try {
+      const result = await this.httpService.post(url, data, {
+        timeout: 5000,
+        ...config,
+      });
+      if (result.status !== 200) {
+        throw new Error(result.data.msg);
+      }
+      return result.data.data;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }
