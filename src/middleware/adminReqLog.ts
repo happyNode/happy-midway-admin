@@ -25,7 +25,7 @@ export class AdminReqLogMiddleware
           ctx.status,
           reportTime,
           ctx.req.method,
-          ctx.admin ? ctx.admin.uid : 1
+          ctx.state.admin ? ctx.state.admin.uid : 1
         );
       });
     };

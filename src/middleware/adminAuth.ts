@@ -18,9 +18,9 @@ export class AdminAuthMiddleware implements IMiddleware<Context, NextFunction> {
 
   public resolve() {
     return async (ctx: Context, next: NextFunction) => {
-      const { path } = ctx;
+      // const { path } = ctx;
 
-      const token = ctx.get('Authorization').trim();
+      const [, token] = ctx.get('Authorization').trim().split(' ') || ['', ''];
 
       if (_.isEmpty(token)) {
         throw new httpError.UnauthorizedError();
@@ -40,14 +40,14 @@ export class AdminAuthMiddleware implements IMiddleware<Context, NextFunction> {
       );
 
       const pv = await verifyService.getRedisPasswordVersionById(
-        ctx.admin.userId
+        ctx.state.admin.userId
       );
-      if (pv !== `${ctx.admin.pv}`) {
+      if (pv !== `${ctx.state.admin.pv}`) {
         throw new httpError.UnauthorizedError();
       }
 
       const redisToken = await verifyService.getRedisTokenById(
-        ctx.admin.userId
+        ctx.state.admin.userId
       );
       if (token !== redisToken) {
         // 与redis保存不一致
@@ -56,7 +56,7 @@ export class AdminAuthMiddleware implements IMiddleware<Context, NextFunction> {
 
       // 后续校验权限
       const perms: string = await verifyService.getRedisPermsById(
-        ctx.admin.userId
+        ctx.state.admin.userId
       );
       // 安全判空
       if (_.isEmpty(perms)) {
@@ -64,14 +64,14 @@ export class AdminAuthMiddleware implements IMiddleware<Context, NextFunction> {
       }
 
       // 将admin:user等转换成admin/user
-      const permArray: string[] = (JSON.parse(perms) as string[]).map(e => {
-        return e.replace(/:/g, '/');
-      });
+      // const permArray: string[] = (JSON.parse(perms) as string[]).map(e => {
+      //   return e.replace(/:/g, '/');
+      // });
 
       // 遍历权限是否包含该url，不包含则无访问权限
-      if (!permArray.includes(path.replace('/admin/', ''))) {
-        throw new httpError.UnauthorizedError();
-      }
+      // if (!permArray.includes(path.replace('/admin/', ''))) {
+      //   throw new httpError.UnauthorizedError();
+      // }
 
       await next();
     };
