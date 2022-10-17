@@ -83,20 +83,20 @@ export class adminVerifyService extends BaseService {
       throw new MyError('用户名或者密码错误');
     }
 
-    const perms = await this.menuService.getPerms(user!.id);
+    const perms = await this.menuService.getPerms(user!.userId);
     const jwtSign = await this.jwtService.sign(
       {
-        uid: parseInt(user!.id.toString()),
+        uid: parseInt(user!.userId.toString()),
         pv: 1,
       },
       {
         expiresIn: '24h',
       }
     );
-    await this.getAdminRedis().set(`admin:passwordVersion:${user!.id}`, 1);
-    await this.getAdminRedis().set(`admin:token:${user!.id}`, jwtSign);
+    await this.getAdminRedis().set(`admin:passwordVersion:${user!.userId}`, 1);
+    await this.getAdminRedis().set(`admin:token:${user!.userId}`, jwtSign);
     await this.getAdminRedis().set(
-      `admin:perms:${user!.id}`,
+      `admin:perms:${user!.userId}`,
       JSON.stringify(perms)
     );
     // 保存登录日志
