@@ -70,3 +70,8 @@ export interface ITaskArgs {
   method: string;
   url: string;
 }
+
+export interface IPermMenuResult {
+  menus: MenuEntity[];
+  perms: string[];
+}

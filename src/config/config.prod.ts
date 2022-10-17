@@ -40,5 +40,9 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     },
   };
 
+  config.jwt = {
+    secret: process.env.SECRET,
+  };
+
   return config;
 };

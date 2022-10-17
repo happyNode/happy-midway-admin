@@ -11,7 +11,7 @@ const DATE_FORMATE = 'YYYY-MM-DD HH:mm:ss';
 
 @Provide()
 @Scope(ScopeEnum.Singleton)
-export default class Utils {
+export class Utils {
   @Inject()
   baseDir;
 

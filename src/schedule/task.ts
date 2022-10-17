@@ -3,7 +3,7 @@ import { App, Provide, Queue, Inject } from '@midwayjs/decorator';
 
 import { IExecuteData } from '../interface';
 import { TaskService } from '../app/service/admin/sys/task';
-import Utils from './../app/comm/utils';
+import { Utils } from './../app/comm/utils';
 
 @Queue()
 @Provide()

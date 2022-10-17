@@ -34,7 +34,7 @@ export class MenuController extends BaseController {
   @Get('/list', { summary: '获取对应权限的菜单列表' })
   @Validate()
   async menuList() {
-    const res = await this.menuService.getMenus(this.ctx.state.user.userId);
+    const res = await this.menuService.getMenus(this.ctx.state.admin.userId);
     return this.success(res);
   }
 

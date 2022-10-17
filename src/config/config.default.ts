@@ -13,7 +13,6 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     },
   };
   config.jwt = {
-    secret: '123456',
     expiresIn: 1000 * 60 * 60 * 24,
   };
   config.jwtWhitelist = [

@@ -21,7 +21,7 @@ import * as axios from '@midwayjs/axios';
 import { RequestIdMiddleware } from './middleware/requestId';
 import { FormatMiddleware } from './middleware/format';
 import { AccessLogMiddleware } from './middleware/accessLog';
-import { JwtMiddleware } from './middleware/jwt';
+import { AdminAuthMiddleware } from './middleware/adminAuth';
 import { AdminReqLogMiddleware } from './middleware/adminReqLog';
 import { NotFoundFilter } from './filter/notfound';
 import { TaskService } from './app/service/admin/sys/task';
@@ -55,7 +55,7 @@ export class ContainerLifeCycle implements ILifeCycle {
       RequestIdMiddleware,
       AccessLogMiddleware,
       FormatMiddleware,
-      JwtMiddleware,
+      AdminAuthMiddleware,
       AdminReqLogMiddleware,
     ]);
     this.app.useFilter([NotFoundFilter]);

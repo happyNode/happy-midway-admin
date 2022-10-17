@@ -3,7 +3,7 @@ import { Application, Context } from '@midwayjs/koa';
 import { Redis } from 'ioredis';
 import { CacheManager } from '@midwayjs/cache';
 
-import Utils from '../app/comm/utils';
+import { Utils } from '../app/comm/utils';
 
 export abstract class BaseService {
   @App()

@@ -10,9 +10,11 @@ import { Crypto } from '../../../comm/crypto';
 import { LoginImageCaptchaDto } from '../../../model/dto/verify';
 import { IImageCaptchaResult } from '../interface';
 import { MenuService } from '../sys/menu';
+import { UserService } from '../sys/user';
+import { IPermMenuResult } from '../../../../interface';
 
 @Provide()
-export class adminVerifyService extends BaseService {
+export class AdminVerifyService extends BaseService {
   @Inject()
   protected mapping: UserMapping;
 
@@ -24,6 +26,9 @@ export class adminVerifyService extends BaseService {
 
   @Inject()
   private menuService: MenuService;
+
+  @Inject()
+  private userService: UserService;
 
   /**
    * 生成图片验证码
@@ -85,7 +90,7 @@ export class adminVerifyService extends BaseService {
     const perms = await this.menuService.getPerms(user!.userId);
     const jwtSign = await this.jwtService.sign(
       {
-        uid: parseInt(user!.userId.toString()),
+        userId: parseInt(user!.userId.toString()),
         pv: 1,
       },
       {
@@ -101,5 +106,33 @@ export class adminVerifyService extends BaseService {
     // 保存登录日志
     // await this.adminSysLoginLogService.save(user!.id);
     return jwtSign;
+  }
+
+  /**
+   * 获取权限菜单
+   */
+  async getPermMenu(uid: number): Promise<IPermMenuResult> {
+    const menus = await this.menuService.getMenus(uid);
+    const perms = await this.menuService.getPerms(uid);
+    return { menus, perms };
+  }
+
+  /**
+   * 清除登录状态信息
+   */
+  async clearLoginStatus(uid: number): Promise<void> {
+    await this.userService.forbidden(uid);
+  }
+
+  async getRedisPermsById(id: number): Promise<string> {
+    return this.getAdminRedis().get(`admin:perms:${id}`);
+  }
+
+  async getRedisPasswordVersionById(id: number): Promise<string> {
+    return this.getAdminRedis().get(`admin:passwordVersion:${id}`);
+  }
+
+  async getRedisTokenById(id: number): Promise<string> {
+    return this.getAdminRedis().get(`admin:token:${id}`);
   }
 }
