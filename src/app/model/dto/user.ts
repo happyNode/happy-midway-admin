@@ -18,9 +18,6 @@ export class CreateUserInput {
 }
 
 export class UpdatePersonInfoDto {
-  @ApiProperty({ type: 'string', description:'管理员昵称',example: '源b' })
-  @Rule(RuleType.string().allow('').allow(null))
-  nickName: string;
 
   @ApiProperty({ type: 'string', description:'邮箱',example: 'qa894178522@qq.com' })
   @Rule(RuleType.string().email().allow('').allow(null))

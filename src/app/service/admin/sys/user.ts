@@ -36,7 +36,7 @@ export class UserService extends BaseService {
    */
   async getAccountInfo(uid: number): Promise<IAccountInfo | null> {
     const user: UserEntity | undefined = await this.mapping.findOne({
-      id: uid,
+      userId: uid,
     });
     if (!isEmpty(user)) {
       return {
@@ -65,7 +65,7 @@ export class UserService extends BaseService {
    * 更改管理员密码
    */
   async updatePassword(uid: number, dto: UpdatePasswordDto): Promise<boolean> {
-    const user = await this.mapping.findOne({ id: uid });
+    const user = await this.mapping.findOne({ userId: uid });
     if (isEmpty(user)) {
       throw new Error('update password user is not exist');
     }
@@ -85,11 +85,11 @@ export class UserService extends BaseService {
    * 直接更改管理员密码
    */
   async forceUpdatePassword(uid: number, password: string): Promise<void> {
-    const user = await this.mapping.findOne({ id: uid });
+    const user = await this.mapping.findOne({ userId: uid });
     if (isEmpty(user)) {
       throw new Error('update password user is not exist');
     }
-    await this.mapping.modify({ password }, { id: uid });
+    await this.mapping.modify({ password }, { userId: uid });
     await this.upgradePasswordV(user.userId);
   }
 
