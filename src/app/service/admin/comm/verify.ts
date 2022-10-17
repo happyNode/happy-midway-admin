@@ -76,8 +76,7 @@ export class adminVerifyService extends BaseService {
     if (this.utils.isEmpty(user)) {
       throw new MyError('用户名或者密码错误');
     }
-
-    const correct = this.crypto.compareSync(user.password, password);
+    const correct = this.crypto.compareSync(password, user.password);
 
     if (!correct) {
       throw new MyError('用户名或者密码错误');
