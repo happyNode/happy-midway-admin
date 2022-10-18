@@ -88,6 +88,6 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     },
   };
 
-  config.rootRoleId = [0];
+  config.rootRoleId = 1;
   return config;
 };

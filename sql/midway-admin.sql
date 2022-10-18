@@ -7,7 +7,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `menu`;
 CREATE TABLE `menu` (
   `menu_id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `parent_id` int(11) unsigned NOT NULL COMMENT '父菜单ID',
+  `parent_id` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '父菜单ID',
   `name` varchar(255) NOT NULL COMMENT '菜单名称',
   `router` varchar(255) NOT NULL COMMENT '菜单地址',
   `perms` varchar(255) NOT NULL COMMENT '权限标识',
@@ -22,6 +22,56 @@ CREATE TABLE `menu` (
   `deleted_at` datetime DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`menu_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='系统菜单信息表';
+
+BEGIN;
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (1, 0, '系统', '/sys', '', 0, 'system', 255, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES ( 3, 1, '权限管理', '/sys/permssion', '', 0, 'permission', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (4, 3, '用户列表', '/sys/permssion/user', '', 1, 'peoples', 0, 'views/system/permission/user', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (5, 4, '新增', '', 'sys:user:add', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (6, 4, '删除', '', 'sys:user:delete', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (7, 3, '菜单列表', '/sys/permssion/menu', '', 1, 'menu', 0, 'views/system/permission/menu', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (8, 7, '新增', '', 'sys:menu:add', 2, '', 0, '', 1, 0);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (9, 7, '删除', '', 'sys:menu:delete', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (10, 7, '查询', '', 'sys:menu:list,sys:menu:info', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (17, 16, '测试', '', 'sys:menu:list,sys:menu:update,sys:menu:info,sys:menu:add', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (19, 7, '修改', '', 'sys:menu:update', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (23, 3, '角色列表', '/sys/permission/role', '', 1, 'role', 0, 'views/system/permission/role', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (25, 23, '删除', '', 'sys:role:delete', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (26, 44, '饿了么文档', 'http://element-cn.eleme.io/#/zh-CN/component/installation', '', 1, 'international', 0, 'views/charts/keyboard', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (27, 44, 'TypeORM中文文档', 'https://www.bookstack.cn/read/TypeORM-0.2.20-zh/README.md', '', 1, 'international', 2, 'views/error-log/components/ErrorTestB', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (28, 23, '新增', '', 'sys:role:add', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (29, 23, '修改', '', 'sys:role:update', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (32, 23, '查询', '', 'sys:role:list,sys:role:page,sys:role:info', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (33, 4, '部门查询', '', 'sys:dept:list,sys:dept:info', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (34, 4, '查询', '', 'sys:user:page,sys:user:info', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (35, 4, '更新', '', 'sys:user:update', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (36, 4, '部门转移', '', 'sys:dept:transfer', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (37, 1, '系统监控', '/sys/monitor', '', 0, 'monitor', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (38, 37, '请求追踪', '/sys/monitor/log', '', 1, 'log', 0, 'views/system/monitor/req-log', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (39, 4, '部门新增', '', 'sys:dept:add', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (40, 4, '部门删除', '', 'sys:dept:delete', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (41, 4, '部门更新', '', 'sys:dept:update', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (20, 4, '部门移动排序', '', 'sys:dept:move', 2, '', 255, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (44, 0, '文档', '/document', '', 0, 'documentation', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (51, 37, '在线用户', '/sys/monitor/online', '', 1, 'people', 0, 'views/system/monitor/online', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (52, 51, '查询', '', 'sys:online:list', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (53, 51, '下线', '', 'sys:online:kick', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (54, 38, '查询', '', 'sys:log:req:page,sys:log:req:search', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (55, 37, '登录日志', '/sys/monitor/login-log', '', 1, 'guide', 0, 'views/system/monitor/login-log', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (56, 55, '查询', '', 'sys:log:login:page', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (57, 1, '任务调度', '/sys/schedule', '', 0, 'task', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (58, 57, '定时任务', '/sys/schedule/task', '', 1, 'schedule', 0, 'views/system/schedule/task', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (59, 58, '查询', '', 'sys:task:page,sys:task:info', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (60, 58, '新增', '', 'sys:task:add', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (61, 58, '更新', '', 'sys:task:update', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (62, 58, '执行一次', '', 'sys:task:once', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (63, 58, '运行', '', 'sys:task:start', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (64, 58, '暂停', '', 'sys:task:stop', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (65, 58, '删除', '', 'sys:task:delete', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (66, 57, '任务日志', '/sys/schedule/log', '', 1, 'schedule-log', 0, 'views/system/schedule/log', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (67, 66, '查询', '', 'sys:log:task:page', 2, '', 0, '', 1, 1);
+INSERT INTO `menu` (menu_id,parent_id,`name`,router,perms,type,icon,rank,view_path,keepalive,is_show) VALUES (68, 4, '更改密码', '', 'sys:user:password', 2, '', 255, '', 1, 1);
+COMMIT;
 
 -- ----------------------------
 -- Table structure for role
@@ -39,6 +89,10 @@ CREATE TABLE `role` (
   UNIQUE KEY `IDX_223de54d6badbe43a5490450c3` (`name`) USING BTREE,
   UNIQUE KEY `IDX_f2d07943355da93c3a8a1c411a` (`label`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='系统角色信息表';
+
+BEGIN;
+INSERT INTO `role` (role_id, `name`,label)  VALUES (1, 'root', '超级管理员');
+COMMIT;
 
 -- ----------------------------
 -- Table structure for role_menu
@@ -118,6 +172,10 @@ CREATE TABLE `user` (
   UNIQUE KEY `IDX_9e7164b2f1ea1348bc0eb0a7da` (`username`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='系统用户信息表';
 
+BEGIN;
+INSERT INTO `user`(user_id,username,`password`,`name`,head_img,email,phone,`status`,remark) VALUES (1,  'admin', '$2a$12$UaCEtAu.F5IfcVqk6apaqugPMkrFKJ9zJSaA0.c4hQTy4MzKQhLP2','admin', 'http://image.si-yee.com/思忆/20200924_021100.png', 'ddzyan@163.com', '18268416544',1,'');
+COMMIT;
+
 -- ----------------------------
 -- Table structure for user_role
 -- ----------------------------
@@ -132,6 +190,9 @@ CREATE TABLE `user_role` (
   PRIMARY KEY (`user_role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='系统用户角色关联表';
 
+BEGIN;
+INSERT INTO `user_role` (user_role_id,user_id,role_id) VALUES (1, 1, 1);
+COMMIT;
 
 CREATE TABLE `req_log` (
   `req_log_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
