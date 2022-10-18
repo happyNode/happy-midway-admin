@@ -132,4 +132,19 @@ CREATE TABLE `user_role` (
   PRIMARY KEY (`user_role_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='系统用户角色关联表';
 
+
+CREATE TABLE `req_log` (
+  `req_log_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `admin_id` int(11) NOT NULL COMMENT '用户id',
+  `ip` varchar(255) NOT NULL COMMENT '请求ip地址',
+  `param` text NOT NULL COMMENT '请求参数',
+  `action` varchar(100) NOT NULL COMMENT '请求路径',
+  `method` varchar(15) NOT NULL COMMENT '请求方式',
+  `status` int(11) NOT NULL COMMENT '返回状态值',
+  `consume_time` int(11) NOT NULL DEFAULT '0' COMMENT '消耗时间',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`req_log_id`) USING BTREE,
+  KEY `idx_admin_id` (`admin_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;

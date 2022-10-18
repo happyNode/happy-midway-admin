@@ -1,7 +1,7 @@
 import { Provide } from '@midwayjs/decorator';
 import { Context, NextFunction } from '@midwayjs/koa';
 import { IMiddleware } from '@midwayjs/core';
-import { SysReqLogService } from '../app/service/admin/sys/sysReqLog';
+import { ReqLogService } from '../app/service/admin/sys/reqLog';
 
 @Provide()
 export class AdminReqLogMiddleware
@@ -18,14 +18,14 @@ export class AdminReqLogMiddleware
       const reportTime = Date.now() - startTime;
       ctx.set('X-Response-Time', reportTime.toString());
       const { url } = ctx;
-      ctx.requestContext.getAsync(SysReqLogService).then(service => {
+      ctx.requestContext.getAsync(ReqLogService).then(service => {
         service.save(
           url.split('?')[0],
           ctx.req.method === 'GET' ? ctx.request.query : ctx.request.body,
           ctx.status,
           reportTime,
           ctx.req.method,
-          ctx.state.admin ? ctx.state.admin.uid : 1
+          ctx.state.admin ? ctx.state.admin.userId : 1
         );
       });
     };
