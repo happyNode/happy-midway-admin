@@ -18,6 +18,7 @@ import {
 import { TaskLogService } from './taskLog';
 import { STATUS, TYPE, RUN_MODE, RESULT } from '../../../constant/task';
 import { IExecuteData, ITaskArgs } from '../../../../interface';
+import { EmailService } from './../comm/email';
 
 @Provide()
 export class TaskService extends BaseService {
@@ -32,6 +33,9 @@ export class TaskService extends BaseService {
 
   @Inject()
   taskLogService: TaskLogService;
+
+  @Inject()
+  emailService: EmailService;
 
   /**
    * 初始化任务，系统启动前调用
@@ -362,7 +366,7 @@ export class TaskService extends BaseService {
     error: any;
     data: IExecuteData;
   }): Promise<void> {
-    const { taskId, emailNotice } = task;
+    const { taskId, emailNotice, taskName } = task;
     const { runMode } = data;
     // 记录日志
     await this.taskLogMapping.saveNew({
@@ -372,8 +376,15 @@ export class TaskService extends BaseService {
       detail: error.message,
       runMode,
     });
-    // TODO 发送邮件通知
-    emailNotice.valueOf();
+    // TODO 发送邮件通知，邮件类型待定
+    const emails = emailNotice.split(',');
+    if (emails.length > 0) {
+      this.emailService.sendEmails({
+        emails,
+        emailType: 'WITHDRAW_FAILURE',
+        content: `定时任务：${taskName}执行异常：${error.message}，请速速排查。`,
+      });
+    }
   }
 
   /**
@@ -409,7 +420,7 @@ export class TaskService extends BaseService {
     return false;
   }
 
-  public async callTask(args: string) {
+  public async callTask(args: string): Promise<string> {
     const taskArgs: ITaskArgs = JSON.parse(args);
     const { method, url } = taskArgs;
     let result: any;
@@ -421,6 +432,11 @@ export class TaskService extends BaseService {
     } else {
       throw new MyError(`Task method error: ${method}`);
     }
+    return result;
+  }
+
+  public async clearLogs(): Promise<number> {
+    const result = await this.taskLogMapping.destroy({});
     return result;
   }
 }

@@ -205,7 +205,8 @@ export class UserService extends BaseService {
       return e.roleId;
     });
     delete user!.password;
-    return { ...user, roles };
+    user.setDataValue('roles', roles);
+    return user;
   }
 
   /**
@@ -226,7 +227,9 @@ export class UserService extends BaseService {
     if (userIds.includes(rootUserId)) {
       throw new Error('can not delete root user!');
     }
-    await this.mapping.destroy(userIds);
+    await this.mapping.destroy({
+      userId: userIds,
+    });
     await this.userRoleMapping.destroy({ userId: userIds });
   }
 

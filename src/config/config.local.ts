@@ -1,4 +1,5 @@
 import { MidwayConfig, MidwayAppInfo } from '@midwayjs/core';
+import { join } from 'path';
 
 export default (appInfo: MidwayAppInfo): MidwayConfig => {
   const config = {} as MidwayConfig;
@@ -43,6 +44,16 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
 
   config.jwt = {
     secret: process.env.SECRET,
+  };
+
+  config.grpc = {
+    services: [
+      {
+        url: process.env.GRPC_URL,
+        protoPath: join(appInfo.appDir, 'proto/email.proto'),
+        package: 'email',
+      },
+    ],
   };
 
   return config;

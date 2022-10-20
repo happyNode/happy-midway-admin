@@ -36,8 +36,10 @@ export class TaskController extends BaseController {
   @Validate()
   @Post('/add', { routerName: '添加任务' })
   async add(@Body(ALL) params: CreateTaskDTO) {
-    // TODO 获取用户id
-    const res = await this.taskService.addTask(1, params);
+    const res = await this.taskService.addTask(
+      this.ctx.state.admin.userId,
+      params
+    );
     return this.success(res);
   }
 

@@ -117,7 +117,9 @@ export class RoleService extends BaseService {
    */
   async update(param: UpdateRoleDto): Promise<RoleEntity> {
     const { roleId, name, label, remark, menus } = param;
-    const role = await this.mapping.saveNew({ roleId, name, label, remark });
+    await this.mapping.modify({ name, label, remark }, {
+      roleId,
+    });
     const originMenuRows = await this.roleMenuMapping.findAll({ roleId });
     const originMenuIds = originMenuRows.map(e => {
       return e.menuId;
@@ -161,7 +163,7 @@ export class RoleService extends BaseService {
     } catch (e) {
       await t.rollback();
     }
-    return role;
+    return ;
   }
 
   /**

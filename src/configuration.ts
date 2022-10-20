@@ -17,6 +17,7 @@ import { join } from 'path';
 import * as jwt from '@midwayjs/jwt';
 import * as cache from '@midwayjs/cache';
 import * as axios from '@midwayjs/axios';
+import * as grpc from '@midwayjs/grpc';
 
 import { RequestIdMiddleware } from './middleware/requestId';
 import { FormatMiddleware } from './middleware/format';
@@ -42,6 +43,7 @@ import { TaskService } from './app/service/admin/sys/task';
     sequlize,
     jwt,
     axios,
+    grpc,
   ],
 })
 export class ContainerLifeCycle implements ILifeCycle {

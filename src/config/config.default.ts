@@ -66,6 +66,9 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         },
         sync: false, // 本地的时候，可以通过sync: true直接createTable
         entities: ['/app/entity'],
+        query: {
+          // raw: true,
+        },
       },
     },
   };

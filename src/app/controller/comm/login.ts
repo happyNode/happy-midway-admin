@@ -15,6 +15,7 @@ import { AdminVerifyService } from '../../service/admin/comm/verify';
 import { LoginImageCaptchaDto, LoginInfoDto } from '../../model/dto/verify';
 import MyError from '../../comm/myError';
 import { NO_AUTH_PREFIX_URL } from '../../constant/base';
+import { TaskService } from '../../service/admin/sys/task';
 
 @Controller(`${NO_AUTH_PREFIX_URL}`, {
   tagName: 'Admin',
@@ -23,6 +24,9 @@ import { NO_AUTH_PREFIX_URL } from '../../constant/base';
 export class AdminController extends BaseController {
   @Inject()
   protected service: AdminVerifyService;
+
+  @Inject()
+  protected taskService: TaskService;
 
   @Get('/captcha/img', {
     summary: '获取图片验证码',
@@ -54,5 +58,11 @@ export class AdminController extends BaseController {
     const sign = await this.service.getLoginSign(username, password);
 
     return this.success({ token: sign });
+  }
+
+  @Post('/logs/clear', { routerName: '定时清空任务日志' })
+  async clearLogs() {
+    const res = await this.taskService.clearLogs();
+    return this.success(res);
   }
 }
