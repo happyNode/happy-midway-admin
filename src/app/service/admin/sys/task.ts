@@ -349,7 +349,7 @@ export class TaskService extends BaseService {
       taskId,
       result: RESULT.SUCCESS,
       consumeTime: timing,
-      detail: result,
+      detail: JSON.stringify(result),
       runMode,
     });
   }
