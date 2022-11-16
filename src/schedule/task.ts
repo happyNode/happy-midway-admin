@@ -1,18 +1,14 @@
 import * as koa from '@midwayjs/koa';
-import { App, Provide, Queue, Inject } from '@midwayjs/decorator';
+import { App, Provide, Queue } from '@midwayjs/decorator';
 
 import { IExecuteData } from '../interface';
 import { TaskService } from '../app/service/admin/sys/task';
-import { Utils } from './../app/comm/utils';
 
 @Queue()
 @Provide()
 export class TaskExecuter {
   @App()
   app: koa.Application;
-
-  @Inject()
-  utils: Utils;
 
   async execute(data: IExecuteData): Promise<void> {
     const container = this.app.getApplicationContext();

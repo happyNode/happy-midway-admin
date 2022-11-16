@@ -1,6 +1,7 @@
 import { QueueService } from '@midwayjs/task';
 import { Provide, Inject } from '@midwayjs/decorator';
 import { CronRepeatOptions, EveryRepeatOptions } from 'bull';
+import * as utils from 'happy-node-utils';
 
 import MyError from '../../../comm/myError';
 import { TaskExecuter } from '../../../../schedule/task';
@@ -412,8 +413,7 @@ export class TaskService extends BaseService {
     const FORMAT = 'second';
     if (
       task.limit === 0 ||
-      (task.endTime &&
-        this.utils.diffDate(this.utils.getDateNow(), task.endTime, FORMAT) >= 0)
+      (task.endTime && utils.diffDate(new Date(), task.endTime, FORMAT) >= 0)
     ) {
       return true;
     }
@@ -426,7 +426,12 @@ export class TaskService extends BaseService {
     let result: any;
     // TODO 待支持多种任务类型，不仅仅http请求
     if (method.toUpperCase() === 'POST') {
-      result = await this.utils.post(url, {});
+      result = await utils.sendPostRequest(url, {}, res => {
+        if (res.status !== 200) {
+          throw new Error(result.data.msg);
+        }
+        return res.data.data;
+      });
     } else if (method.toUpperCase() === 'GET') {
       // TODO get暂时没写
     } else {

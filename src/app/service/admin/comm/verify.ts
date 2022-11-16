@@ -2,6 +2,7 @@ import { Provide, Inject } from '@midwayjs/decorator';
 import { JwtService } from '@midwayjs/jwt';
 import * as svgCaptcha from 'svg-captcha';
 import * as _ from 'lodash';
+import * as utils from 'happy-node-utils';
 
 import { UserMapping } from '../../../mapping/user';
 import { BaseService } from '../../../../core/baseService';
@@ -48,7 +49,7 @@ export class AdminVerifyService extends BaseService {
       img: `data:image/svg+xml;base64,${Buffer.from(svg.data).toString(
         'base64'
       )}`,
-      id: this.utils.getRandom(15, 'alphanumeric'),
+      id: utils.getRandom(15, 'alphanumeric'),
     };
     // 10分钟过期时间
     await this.getAdminRedis().set(
@@ -78,7 +79,7 @@ export class AdminVerifyService extends BaseService {
       username,
       status: 1,
     });
-    if (this.utils.isEmpty(user)) {
+    if (utils.isEmpty(user)) {
       throw new MyError('用户名或者密码错误');
     }
     const correct = this.crypto.compareSync(password, user.password);

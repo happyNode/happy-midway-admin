@@ -1,4 +1,5 @@
 import { Provide, Inject } from '@midwayjs/decorator';
+import * as utils from 'happy-node-utils';
 
 import { BaseService } from '../../../../core/baseService';
 import { ReqLogMapping } from '../../../mapping/reqLog';
@@ -16,7 +17,7 @@ export class ReqLogService extends BaseService {
     method: string | undefined,
     adminId: number | null
   ): Promise<void> {
-    const ip = this.utils.getReqIP(this.ctx);
+    const ip = utils.getReqIP(this.ctx);
     await this.mapping.saveNew({
       action: url,
       param: JSON.stringify(params),

@@ -2,6 +2,8 @@
 
 ![img](./assert/智慧中台ER.png)
 
+[数据库设计](./sql/sf-admin.md)
+
 # 使用
 
 创建数据库 sf-admin，使用 sql/midway-admin.sql 初始化数据库
