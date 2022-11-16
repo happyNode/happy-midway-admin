@@ -17,3 +17,11 @@ npm install
 
 npm run dev
 ```
+
+更新数据库 MD 文档
+
+```
+npm install -g db2md-cli
+
+db2md g -u root -p 3306 -pwd root -h 127.0.0.1 sf_admin
+```
