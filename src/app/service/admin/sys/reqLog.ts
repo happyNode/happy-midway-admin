@@ -1,15 +1,17 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide } from '@midwayjs/decorator';
 import * as utils from 'happy-node-utils';
+import { Repository } from 'sequelize-typescript';
 
 import { BaseService } from '../../../../core/baseService';
-import { ReqLogMapping } from '../../../mapping/reqLog';
+import { ReqLogEntity } from '../../../entity/reqLog';
 
 @Provide()
-export class ReqLogService extends BaseService {
-  @Inject()
-  protected mapping: ReqLogMapping;
+export class ReqLogService extends BaseService<ReqLogEntity> {
+  getModel(): Repository<ReqLogEntity> {
+    return ReqLogEntity;
+  }
 
-  async save(
+  async saveNew(
     url: string,
     params: string,
     status: number,
@@ -18,7 +20,7 @@ export class ReqLogService extends BaseService {
     adminId: number | null
   ): Promise<void> {
     const ip = utils.getReqIP(this.ctx);
-    await this.mapping.saveNew({
+    await this.save({
       action: url,
       param: JSON.stringify(params),
       adminId: adminId || 1,

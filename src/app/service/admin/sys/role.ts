@@ -3,33 +3,33 @@ import { Op } from 'sequelize';
 import { isEmpty, map, includes, difference, filter } from 'lodash';
 
 import { BaseService } from '../../../../core/baseService';
-import { RoleMapping } from '../../../mapping/role';
-
 import { RoleEntity } from '../../../entity/role';
 import { IRoleInfoResult } from '../../../../interface';
-import { RoleMenuMapping } from '../../../mapping/roleMenu';
+import { RoleMenuService } from './roleMenu';
+import { UserRoleService } from './userRole';
 import { CreateRoleDto, UpdateRoleDto } from '../../../model/dto/role';
-import { UserRoleMapping } from '../../../mapping/userRole';
+import { Repository } from 'sequelize-typescript';
 
 @Provide()
-export class RoleService extends BaseService {
+export class RoleService extends BaseService<RoleEntity> {
   @Inject()
-  protected mapping: RoleMapping;
+  private roleMenuService: RoleMenuService;
 
   @Inject()
-  protected roleMenuMapping: RoleMenuMapping;
-
-  @Inject()
-  protected userRoleMapping: UserRoleMapping;
+  private userRoleService: UserRoleService;
 
   @Config('rootRoleId')
   rootRoleId: number;
+
+  getModel(): Repository<RoleEntity> {
+    return RoleEntity;
+  }
 
   /**
    * 列举所有角色：除去超级管理员
    */
   async list(): Promise<RoleEntity[]> {
-    const result = await this.mapping.findAll({
+    const result = await this.findAll({
       roleId: {
         [Op.notIn]: this.rootRoleId,
       },
@@ -41,9 +41,11 @@ export class RoleService extends BaseService {
    * 列举所有角色条数：除去超级管理员
    */
   async count(): Promise<number> {
-    const count = await this.mapping.count({
-      id: {
-        [Op.notIn]: this.rootRoleId,
+    const count = await this.getModel().count({
+      where: {
+        id: {
+          [Op.notIn]: this.rootRoleId,
+        },
       },
     });
     return count;
@@ -53,8 +55,8 @@ export class RoleService extends BaseService {
    * 根据角色获取角色信息
    */
   async info(rid: number): Promise<IRoleInfoResult> {
-    const roleInfo = await this.mapping.findOne({ roleId: rid });
-    const menus = await this.roleMenuMapping.findAll({ roleId: rid });
+    const roleInfo = await this.findOne({ roleId: rid });
+    const menus = await this.roleMenuService.findAll({ roleId: rid });
     return { roleInfo, menus };
   }
 
@@ -65,18 +67,18 @@ export class RoleService extends BaseService {
     if (includes(roleIds, this.rootRoleId)) {
       throw new Error('Not Support Delete Root');
     }
-    const t = await this.mapping.getTransaction();
+    const t = await this.getTransaction();
     try {
       const options = {
         transaction: t,
       };
-      await this.mapping.destroy(
+      await this.destroy(
         {
           roleId: roleIds,
         },
         options
       );
-      await this.roleMenuMapping.destroy(
+      await this.roleMenuService.destroy(
         {
           roleId: roleIds,
         },
@@ -93,7 +95,7 @@ export class RoleService extends BaseService {
    */
   async add(param: CreateRoleDto): Promise<number> {
     const { name, label, remark, menus } = param;
-    const role = await this.mapping.saveNew({
+    const role = await this.save({
       name,
       label,
       remark,
@@ -107,7 +109,7 @@ export class RoleService extends BaseService {
           menuId: m,
         };
       });
-      await this.roleMenuMapping.creatMany(insertRows);
+      await this.roleMenuService.createMany(insertRows);
     }
     return roleId;
   }
@@ -117,10 +119,13 @@ export class RoleService extends BaseService {
    */
   async update(param: UpdateRoleDto): Promise<RoleEntity> {
     const { roleId, name, label, remark, menus } = param;
-    await this.mapping.modify({ name, label, remark }, {
-      roleId,
-    });
-    const originMenuRows = await this.roleMenuMapping.findAll({ roleId });
+    await this.modify(
+      { name, label, remark },
+      {
+        roleId,
+      }
+    );
+    const originMenuRows = await this.roleMenuService.findAll({ roleId });
     const originMenuIds = originMenuRows.map(e => {
       return e.menuId;
     });
@@ -128,7 +133,7 @@ export class RoleService extends BaseService {
     const insertMenusRowIds = difference(menus, originMenuIds);
     const deleteMenusRowIds = difference(originMenuIds, menus);
     // using transaction
-    const t = await this.mapping.getTransaction();
+    const t = await this.getTransaction();
     try {
       if (insertMenusRowIds.length > 0) {
         // 有条目更新
@@ -138,7 +143,7 @@ export class RoleService extends BaseService {
             menuId: e,
           };
         });
-        await this.roleMenuMapping.creatMany(insertRows, {
+        await this.roleMenuService.createMany(insertRows, {
           transaction: t,
         });
       }
@@ -150,7 +155,7 @@ export class RoleService extends BaseService {
         }).map(e => {
           return e.id;
         });
-        await this.roleMenuMapping.destroy(
+        await this.roleMenuService.destroy(
           {
             id: realDeleteRowIds,
           },
@@ -163,7 +168,7 @@ export class RoleService extends BaseService {
     } catch (e) {
       await t.rollback();
     }
-    return ;
+    return;
   }
 
   /**
@@ -173,16 +178,11 @@ export class RoleService extends BaseService {
     page: number,
     count: number
   ): Promise<{ rows: RoleEntity[]; count: number }> {
-    const result = await this.mapping.findAndCountAll(
-      page,
-      count,
-      {
-        roleId: {
-          [Op.notIn]: this.rootRoleId,
-        },
+    const result = await this.findAndCountAll(page, count, {
+      roleId: {
+        [Op.notIn]: this.rootRoleId,
       },
-      {}
-    );
+    });
     return result;
   }
 
@@ -190,7 +190,7 @@ export class RoleService extends BaseService {
    * 根据用户id查找角色信息
    */
   async getRoleIdByUser(id: number): Promise<number[]> {
-    const result = await this.userRoleMapping.findAll({
+    const result = await this.userRoleService.findAll({
       userId: id,
     });
     if (!isEmpty(result)) {
@@ -204,10 +204,11 @@ export class RoleService extends BaseService {
   /**
    * 根据角色ID列表查找关联用户ID
    */
-  async countUserIdByRole(ids: number[]): Promise<number | never> {
+  async countUserIdByRole(ids: number[]): Promise<number> {
     if (includes(ids, this.rootRoleId)) {
       throw new Error('Not Support Delete Root');
     }
-    return await this.userRoleMapping.count({ roleId: ids });
+    const res = await this.userRoleService.count({ roleId: ids });
+    return res;
   }
 }

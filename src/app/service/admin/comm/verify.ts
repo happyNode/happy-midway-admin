@@ -4,7 +4,7 @@ import * as svgCaptcha from 'svg-captcha';
 import * as _ from 'lodash';
 import * as utils from 'happy-node-utils';
 
-import { UserMapping } from '../../../mapping/user';
+import { UserEntity } from '../../../entity/user';
 import { BaseService } from '../../../../core/baseService';
 import MyError from '../../../comm/myError';
 import { Crypto } from '../../../comm/crypto';
@@ -13,14 +13,12 @@ import { IImageCaptchaResult } from '../interface';
 import { MenuService } from '../sys/menu';
 import { UserService } from '../sys/user';
 import { IPermMenuResult } from '../../../../interface';
+import { Repository } from 'sequelize-typescript';
 
 @Provide()
-export class AdminVerifyService extends BaseService {
+export class AdminVerifyService extends BaseService<UserEntity> {
   @Inject()
-  protected mapping: UserMapping;
-
-  @Inject()
-  protected crypto: Crypto;
+  private crypto: Crypto;
 
   @Inject()
   private jwtService: JwtService;
@@ -30,6 +28,10 @@ export class AdminVerifyService extends BaseService {
 
   @Inject()
   private userService: UserService;
+
+  getModel(): Repository<UserEntity> {
+    return UserEntity;
+  }
 
   /**
    * 生成图片验证码
@@ -75,7 +77,7 @@ export class AdminVerifyService extends BaseService {
   }
 
   async getLoginSign(username: string, password: string) {
-    const user = await this.mapping.findOne({
+    const user = await this.findOne({
       username,
       status: 1,
     });

@@ -2,46 +2,39 @@ import { Provide, Inject, Config } from '@midwayjs/decorator';
 import { isEmpty, includes, concat, uniq } from 'lodash';
 
 import { BaseService } from '../../../../core/baseService';
-import { MenuMapping } from '../../../mapping/menu';
 import { MenuEntity } from '../../../entity/menu';
 import { CreateMenuDto } from '../../../model/dto/menu';
 import { IMenuItemAndParentInfoResult } from '../../../../interface';
 import { RoleService } from './role';
 import { RoleMenuEntity } from '../../../entity/roleMenu';
 import { Op } from 'sequelize';
+import { Repository } from 'sequelize-typescript';
 
 @Provide()
-export class MenuService extends BaseService {
-  @Inject()
-  protected mapping: MenuMapping;
-
+export class MenuService extends BaseService<MenuEntity> {
   @Inject()
   protected roleService: RoleService;
 
   @Config('rootRoleId')
   rootRoleId: number;
+
+  getModel(): Repository<MenuEntity> {
+    return MenuEntity;
+  }
+
   /**
    * 获取所有菜单
    */
   async list(): Promise<MenuEntity[]> {
-    return await this.mapping.findAll();
+    return await this.findAll();
   }
 
   /**
    * 保存或新增菜单
    */
   async save(menu: CreateMenuDto & { menuId?: number }): Promise<MenuEntity> {
-    const result = await this.mapping.saveNew(menu);
+    const result = await this.save(menu);
     return result;
-  }
-  /**
-   * 保存或新增菜单
-   */
-  async modify(menu: CreateMenuDto, menuId: number): Promise<void> {
-    await this.mapping.modify(menu, {
-      menuId,
-    });
-    return;
   }
 
   /**
@@ -53,7 +46,7 @@ export class MenuService extends BaseService {
     let menus: MenuEntity[] = [];
     if (includes(roleIds, this.rootRoleId)) {
       // root find all
-      menus = await this.mapping.findAll();
+      menus = await this.findAll();
     } else {
       // [ 1, 2, 3 ] role find
       const options = {
@@ -67,7 +60,7 @@ export class MenuService extends BaseService {
           },
         ],
       };
-      menus = await this.mapping.findAll({}, options);
+      menus = await this.findAll({}, options);
     }
     return menus;
   }
@@ -77,7 +70,7 @@ export class MenuService extends BaseService {
    */
   async findChildMenus(mid: number): Promise<any> {
     const allMenus: any = [];
-    const menus = await this.mapping.findAll({ parentId: mid });
+    const menus = await this.findAll({ parentId: mid });
     for (let i = 0; i < menus.length; i++) {
       if (menus[i].type !== 2) {
         // 子目录下是菜单或目录，继续往下级查找
@@ -94,7 +87,7 @@ export class MenuService extends BaseService {
    * @param mid menu id
    */
   async getMenuItemInfo(mid: number): Promise<MenuEntity> {
-    const menu = await this.mapping.findOne({ menuId: mid });
+    const menu = await this.findOne({ menuId: mid });
     return menu;
   }
 
@@ -104,10 +97,10 @@ export class MenuService extends BaseService {
   async getMenuItemAndParentInfo(
     mid: number
   ): Promise<IMenuItemAndParentInfoResult> {
-    const menu = await this.mapping.findOne({ menuId: mid });
+    const menu = await this.findOne({ menuId: mid });
     let parentMenu: MenuEntity | undefined = undefined;
     if (menu && menu.parentId) {
-      parentMenu = await this.mapping.findOne({ menuId: menu.parentId });
+      parentMenu = await this.findOne({ menuId: menu.parentId });
     }
     return { menu, parentMenu };
   }
@@ -116,7 +109,7 @@ export class MenuService extends BaseService {
    * 查找节点路由是否存在
    */
   async findRouterExist(router: string): Promise<boolean> {
-    const menus = await this.mapping.findOne({ router });
+    const menus = await this.findOne({ router });
     return !isEmpty(menus);
   }
 
@@ -129,7 +122,7 @@ export class MenuService extends BaseService {
     let result: any = null;
     if (includes(roleIds, this.rootRoleId)) {
       // root find all perms
-      result = await this.mapping.findAll({
+      result = await this.findAll({
         perms: {
           [Op.not]: null,
         },
@@ -146,7 +139,7 @@ export class MenuService extends BaseService {
           },
         ],
       };
-      result = await this.mapping.findAll(
+      result = await this.findAll(
         {
           perms: {
             [Op.not]: null,
@@ -169,7 +162,7 @@ export class MenuService extends BaseService {
    * 删除多项菜单
    */
   async deleteMenuItem(mids: number[]): Promise<number> {
-    return await this.mapping.destroy({
+    return await this.destroy({
       menuId: mids,
     });
   }

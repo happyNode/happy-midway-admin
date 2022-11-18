@@ -1,11 +1,13 @@
 import { Provide, Inject, Init, Logger } from '@midwayjs/decorator';
 import { Clients, Metadata } from '@midwayjs/grpc';
+import { Repository } from 'sequelize-typescript';
 
+import { UserEntity } from '../../../entity/user';
 import { email } from '../../../../domain/email';
 import { BaseService } from '../../../../core/baseService';
 
 @Provide()
-export class EmailService extends BaseService {
+export class EmailService extends BaseService<UserEntity> {
   @Inject()
   private grpcClients: Clients;
 
@@ -14,6 +16,10 @@ export class EmailService extends BaseService {
   private readonly timeOut = 10000;
 
   private meta: Metadata;
+
+  getModel(): Repository<UserEntity> {
+    return UserEntity;
+  }
 
   @Logger()
   private logger;

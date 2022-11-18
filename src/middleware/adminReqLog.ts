@@ -19,7 +19,7 @@ export class AdminReqLogMiddleware
       ctx.set('X-Response-Time', reportTime.toString());
       const { url } = ctx;
       ctx.requestContext.getAsync(ReqLogService).then(service => {
-        service.save(
+        service.saveNew(
           url.split('?')[0],
           ctx.req.method === 'GET' ? ctx.request.query : ctx.request.body,
           ctx.status,

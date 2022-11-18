@@ -1,11 +1,10 @@
 import { Provide, Inject, Config } from '@midwayjs/decorator';
 import { isEmpty } from 'lodash';
 import { Op } from 'sequelize';
+import { Repository } from 'sequelize-typescript';
 
-import { UserMapping } from '../../../mapping/user';
 import { BaseService } from '../../../../core/baseService';
 import { IAccountInfo, IPageSearchUserResult } from '../../../../interface';
-import { UserEntity } from '../../../entity/user';
 import {
   CreateUserDto,
   UpdatePasswordDto,
@@ -13,17 +12,15 @@ import {
   UpdateUserDto,
 } from '../../../model/dto/user';
 import { Crypto } from '../../../comm/crypto';
-import { UserRoleMapping } from '../../../mapping/userRole';
+import { UserRoleService } from './userRole';
 import { UserRoleEntity } from '../../../entity/userRole';
+import { UserEntity } from '../../../entity/user';
 import { RoleEntity } from '../../../entity/role';
 
 @Provide()
-export class UserService extends BaseService {
+export class UserService extends BaseService<UserEntity> {
   @Inject()
-  protected mapping: UserMapping;
-
-  @Inject()
-  protected userRoleMapping: UserRoleMapping;
+  private userRoleService: UserRoleService;
 
   @Inject()
   protected crypto: Crypto;
@@ -31,11 +28,15 @@ export class UserService extends BaseService {
   @Config('rootRoleId')
   rootRoleId: number;
 
+  getModel(): Repository<UserEntity> {
+    return UserEntity;
+  }
+
   /**
    * 查询用户个人信息
    */
   async getAccountInfo(uid: number): Promise<IAccountInfo | null> {
-    const user: UserEntity | undefined = await this.mapping.findOne({
+    const user: UserEntity | undefined = await this.findOne({
       userId: uid,
     });
     if (!isEmpty(user)) {
@@ -58,14 +59,14 @@ export class UserService extends BaseService {
     uid: number,
     param: UpdatePersonInfoDto
   ): Promise<void> {
-    await this.mapping.modify(param, { userId: uid });
+    await this.modify(param, { userId: uid });
   }
 
   /**
    * 更改管理员密码
    */
   async updatePassword(uid: number, dto: UpdatePasswordDto): Promise<boolean> {
-    const user = await this.mapping.findOne({ userId: uid });
+    const user = await this.findOne({ userId: uid });
     if (isEmpty(user)) {
       throw new Error('update password user is not exist');
     }
@@ -76,7 +77,7 @@ export class UserService extends BaseService {
     if (!correct) {
       return false;
     }
-    await this.mapping.modify({ password: dto.newPassword }, { userId: uid });
+    await this.modify({ password: dto.newPassword }, { userId: uid });
     await this.upgradePasswordV(user.userId);
     return true;
   }
@@ -85,11 +86,11 @@ export class UserService extends BaseService {
    * 直接更改管理员密码
    */
   async forceUpdatePassword(uid: number, password: string): Promise<void> {
-    const user = await this.mapping.findOne({ userId: uid });
+    const user = await this.findOne({ userId: uid });
     if (isEmpty(user)) {
       throw new Error('update password user is not exist');
     }
-    await this.mapping.modify({ password }, { userId: uid });
+    await this.modify({ password }, { userId: uid });
     await this.upgradePasswordV(user.userId);
   }
 
@@ -98,15 +99,15 @@ export class UserService extends BaseService {
    * @param param Object 对应SysUser实体类
    */
   async add(param: CreateUserDto): Promise<boolean> {
-    const exists = await this.mapping.findOne({ username: param.username });
+    const exists = await this.findOne({ username: param.username });
     if (!isEmpty(exists)) {
       return false;
     }
 
     // 所有用户初始密码为123456
-    const t = await this.mapping.getTransaction();
+    const t = await this.getTransaction();
     try {
-      const user = await this.mapping.saveNew(
+      const user = await this.save(
         {
           username: param.username,
           password: '123456',
@@ -127,7 +128,7 @@ export class UserService extends BaseService {
           userId: user.userId,
         };
       });
-      await this.userRoleMapping.creatMany(insertRoles, {
+      await this.userRoleService.createMany(insertRoles, {
         transaction: t,
       });
       await t.commit();
@@ -142,9 +143,9 @@ export class UserService extends BaseService {
    * 更新用户信息
    */
   async update(param: UpdateUserDto): Promise<void> {
-    const t = await this.mapping.getTransaction();
+    const t = await this.getTransaction();
     try {
-      await this.mapping.modify(
+      await this.modify(
         {
           username: param.username,
           password: '123456',
@@ -161,7 +162,7 @@ export class UserService extends BaseService {
           transaction: t,
         }
       );
-      await this.userRoleMapping.destroy(
+      await this.userRoleService.destroy(
         {
           userId: param.userId,
         },
@@ -176,7 +177,7 @@ export class UserService extends BaseService {
           userId: param.userId,
         };
       });
-      await this.userRoleMapping.creatMany(insertRoles, {
+      await this.userRoleService.createMany(insertRoles, {
         transaction: t,
       });
       await t.commit();
@@ -194,11 +195,11 @@ export class UserService extends BaseService {
    * @param id 用户id
    */
   async info(id: number): Promise<(UserEntity & { roles: number[] }) | never> {
-    const user: any = await this.mapping.findOne(id);
+    const user: any = await this.findOne(id);
     if (isEmpty(user)) {
       throw new Error('unfind this user info');
     }
-    const roleRows = await this.userRoleMapping.findAll({
+    const roleRows = await this.userRoleService.findAll({
       userId: user!.userId,
     });
     const roles = roleRows.map(e => {
@@ -213,7 +214,7 @@ export class UserService extends BaseService {
    * 查找列表里的信息
    */
   async infoList(ids: number[]): Promise<UserEntity[]> {
-    const users = await this.mapping.findAll({
+    const users = await this.findAll({
       userId: ids,
     });
     return users;
@@ -227,18 +228,18 @@ export class UserService extends BaseService {
     if (userIds.includes(rootUserId)) {
       throw new Error('can not delete root user!');
     }
-    await this.mapping.destroy({
+    await this.destroy({
       userId: userIds,
     });
-    await this.userRoleMapping.destroy({ userId: userIds });
+    await this.userRoleService.destroy({ userId: userIds });
   }
 
   /**
    * 根据部门ID列举用户条数：除去超级管理员
    */
-  async count(uid: number): Promise<number> {
+  async getCount(uid: number): Promise<number> {
     const rootUserId = await this.findRootUserId();
-    return await this.mapping.count({
+    return await this.count({
       userId: {
         [Op.notIn]: [rootUserId, uid],
       },
@@ -249,7 +250,7 @@ export class UserService extends BaseService {
    * 查找超管的用户ID
    */
   async findRootUserId(): Promise<number> {
-    const result = await this.userRoleMapping.findOne({
+    const result = await this.userRoleService.findOne({
       userId: this.rootRoleId,
     });
     if (!result) {
@@ -269,7 +270,7 @@ export class UserService extends BaseService {
   ): Promise<{ list: IPageSearchUserResult[]; count: number }> {
     const rootUserId = await this.findRootUserId();
 
-    const { rows: result, count } = await this.mapping.findAndCountAll(
+    const { rows: result, count } = await this.findAndCountAll(
       page,
       limit,
       {

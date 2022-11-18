@@ -85,7 +85,7 @@ export class MenuController extends BaseController {
         throw new MyError('非法操作：该节点仅支持目录类型父节点');
       }
     }
-    await this.menuService.modify(dto, dto.menuId);
+    await this.menuService.modify(dto, { menuId: dto.menuId }, {});
     if (dto.type === 2) {
       // 如果是权限发生更改，则刷新所有在线用户的权限
       await this.menuService.refreshOnlineUserPerms();

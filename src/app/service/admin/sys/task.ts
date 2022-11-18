@@ -6,8 +6,6 @@ import * as utils from 'happy-node-utils';
 import MyError from '../../../comm/myError';
 import { TaskExecuter } from '../../../../schedule/task';
 import { BaseService } from '../../../../core/baseService';
-import { TaskMapping } from '../../../mapping/task';
-import { TaskLogMapping } from '../../../mapping/taskLog';
 import { TaskEntity } from '../../../entity/task';
 import { TaskLogEntity } from '../../../entity/taskLog';
 import {
@@ -20,23 +18,22 @@ import { TaskLogService } from './taskLog';
 import { STATUS, TYPE, RUN_MODE, RESULT } from '../../../constant/task';
 import { IExecuteData, ITaskArgs } from '../../../../interface';
 import { EmailService } from './../comm/email';
+import { Repository } from 'sequelize-typescript';
 
 @Provide()
-export class TaskService extends BaseService {
+export class TaskService extends BaseService<TaskEntity> {
   @Inject()
-  protected mapping: TaskMapping;
-
-  @Inject()
-  protected taskLogMapping: TaskLogMapping;
+  private taskLogService: TaskLogService;
 
   @Inject()
   queueService: QueueService;
 
   @Inject()
-  taskLogService: TaskLogService;
-
-  @Inject()
   emailService: EmailService;
+
+  getModel(): Repository<TaskEntity> {
+    return TaskEntity;
+  }
 
   /**
    * 初始化任务，系统启动前调用
@@ -57,7 +54,7 @@ export class TaskService extends BaseService {
     );
     console.log('已移除目前存在的定时任务 ✅');
     // 查找所有需要运行的任务
-    const tasks = await this.mapping.findAll({ status: STATUS.START });
+    const tasks = await this.findAll({ status: STATUS.START });
     await Promise.all(tasks.map(task => this._start(task)));
     console.log('定时任务加载完成 ✅');
   }
@@ -70,7 +67,7 @@ export class TaskService extends BaseService {
     count: number;
   }> {
     const { page, limit } = params;
-    const tasks = await this.mapping.findAndCountAll(page, limit);
+    const tasks = await this.findAndCountAll(page, limit);
     return tasks;
   }
 
@@ -78,7 +75,7 @@ export class TaskService extends BaseService {
    * 获取任务详情
    */
   async getTask(taskId: number): Promise<TaskEntity> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     return task;
   }
 
@@ -87,11 +84,11 @@ export class TaskService extends BaseService {
    */
   async addTask(userId: number, params: CreateTaskDTO): Promise<void> {
     // 判断定时器任务名称唯一
-    let task = await this.mapping.findOne({ taskName: params.taskName });
+    let task = await this.findOne({ taskName: params.taskName });
     if (task) {
       throw new MyError('已有相同名称的定时任务');
     }
-    task = await this.mapping.saveNew({ userId, ...params });
+    task = await this.save({ userId, ...params });
     await this._startOrStopTask(task);
   }
 
@@ -99,7 +96,7 @@ export class TaskService extends BaseService {
    * 更新任务
    */
   async updateTask(params: UpdateTaskDTO): Promise<void> {
-    let task = await this.mapping.findByPk(params.taskId);
+    let task = await this.findByPk(params.taskId);
     if (!task) {
       throw new MyError('无效的定时任务，请重新刷新页面');
     }
@@ -122,7 +119,7 @@ export class TaskService extends BaseService {
    * 启动任务
    */
   async startTask(taskId: number): Promise<void> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     if (!task) {
       throw new MyError('无效的定时任务，请重新刷新页面');
     }
@@ -133,7 +130,7 @@ export class TaskService extends BaseService {
    * 暂停任务
    */
   async stopTask(taskId: number): Promise<void> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     if (!task) {
       throw new MyError('无效的定时任务，请重新刷新页面');
     }
@@ -144,7 +141,7 @@ export class TaskService extends BaseService {
    * 手动启动一次任务
    */
   async once(taskId: number): Promise<void> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     if (!task) {
       throw new MyError('无效的定时任务，请重新刷新页面');
     }
@@ -159,22 +156,19 @@ export class TaskService extends BaseService {
    * remove task
    */
   async remove(taskId: number): Promise<void> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     if (!task) {
       throw new MyError('无效的定时任务，请重新刷新页面');
     }
     await this._stop(task);
-    await this.mapping.destroy({ taskId: task.taskId });
+    await this.destroy({ taskId: task.taskId });
   }
 
   /**
    * 获取任务下拉框
    */
   async select(): Promise<TaskEntity[]> {
-    const task = await this.mapping.findAll(
-      {},
-      { attributes: ['taskId', 'taskName'] }
-    );
+    const task = await this.findAll({}, { attributes: ['taskId', 'taskName'] });
     return task;
   }
 
@@ -190,7 +184,7 @@ export class TaskService extends BaseService {
     if (typeof taskId === 'number') {
       where['taskId'] = taskId;
     }
-    const logs = await this.taskLogMapping.findAndCountAll(page, limit, where);
+    const logs = await this.taskLogService.findAndCountAll(page, limit, where);
     return logs;
   }
 
@@ -243,7 +237,7 @@ export class TaskService extends BaseService {
     );
 
     if (job && job.opts) {
-      await this.mapping.modify(
+      await this.modify(
         {
           status: STATUS.START,
         },
@@ -252,10 +246,7 @@ export class TaskService extends BaseService {
     } else {
       // update status to 0，标识暂停任务，因为启动失败
       job && (await job.remove());
-      await this.mapping.modify(
-        { status: STATUS.STOP },
-        { taskId: task.taskId }
-      );
+      await this.modify({ status: STATUS.STOP }, { taskId: task.taskId });
       throw new MyError('Task Start failed');
     }
   }
@@ -269,10 +260,7 @@ export class TaskService extends BaseService {
     }
     const exist = await this._existJob(task.taskId.toString());
     if (!exist) {
-      await this.mapping.modify(
-        { status: STATUS.STOP },
-        { taskId: task.taskId }
-      );
+      await this.modify({ status: STATUS.STOP }, { taskId: task.taskId });
       return;
     }
     const jobs = await this.queueService
@@ -290,7 +278,7 @@ export class TaskService extends BaseService {
         await jobs[i].remove();
       }
     }
-    await this.mapping.modify({ status: STATUS.STOP }, { taskId: task.taskId });
+    await this.modify({ status: STATUS.STOP }, { taskId: task.taskId });
   }
 
   /**
@@ -310,7 +298,7 @@ export class TaskService extends BaseService {
    * 在执行定时之前，检测任务
    */
   async checkTaskBeforeExecute(taskId: number): Promise<TaskEntity> {
-    const task = await this.mapping.findByPk(taskId);
+    const task = await this.findByPk(taskId);
     /**
      * 判断任务是否存在库中、
      * 状态是否为启动中、
@@ -346,7 +334,7 @@ export class TaskService extends BaseService {
     const { taskId } = task;
     const { runMode } = data;
     // 记录日志
-    await this.taskLogMapping.saveNew({
+    await this.taskLogService.save({
       taskId,
       result: RESULT.SUCCESS,
       consumeTime: timing,
@@ -370,7 +358,7 @@ export class TaskService extends BaseService {
     const { taskId, emailNotice, taskName } = task;
     const { runMode } = data;
     // 记录日志
-    await this.taskLogMapping.saveNew({
+    await this.taskLogService.save({
       taskId,
       result: RESULT.FAIL,
       consumeTime: timing,
@@ -393,18 +381,12 @@ export class TaskService extends BaseService {
    */
   async checkTaskAfterExecute(task: TaskEntity): Promise<void> {
     if (task.limit > 0) {
-      await this.mapping.modify(
-        { limit: task.limit - 1 },
-        { taskId: task.taskId }
-      );
+      await this.modify({ limit: task.limit - 1 }, { taskId: task.taskId });
     }
-    task = await this.mapping.findByPk(task.taskId);
+    task = await this.findByPk(task.taskId);
 
     if (this._checkTaskIsNeedStop(task)) {
-      await this.mapping.modify(
-        { status: STATUS.STOP },
-        { taskId: task.taskId }
-      );
+      await this.modify({ status: STATUS.STOP }, { taskId: task.taskId });
     }
   }
 
@@ -441,7 +423,7 @@ export class TaskService extends BaseService {
   }
 
   public async clearLogs(): Promise<number> {
-    const result = await this.taskLogMapping.destroy({});
+    const result = await this.taskLogService.destroy({});
     return result;
   }
 }
